@@ -12,8 +12,11 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.paam.songbook.player.PlayerService
 import com.paam.songbook.ui.PlayerScaffold
+import com.paam.songbook.ui.settings.SettingsScreen
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+import androidx.navigation.compose.*
+import com.paam.songbook.ui.about.AboutScreen
 
 @UnstableApi
 class MainActivity : ComponentActivity() {
@@ -28,13 +31,27 @@ class MainActivity : ComponentActivity() {
                 this@MainActivity,
                 ComponentName(this@MainActivity, PlayerService::class.java)
             )
-            val controllerFuture = MediaController.Builder(this@MainActivity, sessionToken).buildAsync()
+            val controllerFuture =
+                MediaController.Builder(this@MainActivity, sessionToken).buildAsync()
             controller = controllerFuture.await()
 
             setContent {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    controller?.let {
-                        PlayerScaffold(controller = it)
+                    val navController = rememberNavController()
+
+                    NavHost(navController, startDestination = "home") {
+                        composable("home") {
+                            PlayerScaffold(
+                                controller = controller!!,
+                                navController = navController
+                            )
+                        }
+                        composable("settings") {
+                            SettingsScreen(onBack = { navController.popBackStack() })
+                        }
+                        composable("about") {
+                            AboutScreen(onBack = { navController.popBackStack() })
+                        }
                     }
                 }
             }
