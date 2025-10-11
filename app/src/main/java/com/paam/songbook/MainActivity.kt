@@ -11,6 +11,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import com.paam.songbook.ui.PlayerScaffold
+
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.guava.await
 
@@ -31,12 +32,17 @@ class MainActivity : ComponentActivity() {
 
         // Build MediaController asynchronously using coroutines
         lifecycleScope.launch {
-            val controllerFuture = MediaController.Builder(this@MainActivity, mediaSession!!.token).buildAsync()
+            val controllerFuture = MediaController.Builder(
+                this@MainActivity,
+                mediaSession!!.token
+            ).buildAsync()
+
             controller = controllerFuture.await() // suspends until ready
 
             setContent {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     controller?.let {
+                        // Single root composable
                         PlayerScaffold(controller = it)
                     }
                 }
