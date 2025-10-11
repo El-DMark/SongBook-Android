@@ -34,7 +34,7 @@ fun PlayerScaffold(controller: MediaController) {
             UnifiedPlayer(
                 controller = controller,
                 isExpanded = isExpanded,
-                onCollapse = { isExpanded = false }
+               // onCollapse = { isExpanded = false }
             )
         },
         sheetPeekHeight = 72.dp // mini-player height

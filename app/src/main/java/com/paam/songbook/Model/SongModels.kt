@@ -8,8 +8,9 @@ data class Song(
 )
 
 fun sampleSongs(): List<Song> = listOf(
-    Song("Moonlight", "Ludwig", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", "file:///storage/emulated/0/Music/art/moonlight.jpg"),
-    Song("Aurora", "Nova", "/storage/emulated/0/Music/aurora.mp3", "file:///storage/emulated/0/Music/art/aurora.jpg"),
-    Song("Midnight Drive", "Neon", "/storage/emulated/0/Music/midnight.mp3", "file:///storage/emulated/0/Music/art/midnight.jpg"),
-    Song("Slow Waves", "Coast", "/storage/emulated/0/Music/slowwaves.mp3", "file:///storage/emulated/0/Music/art/slowwaves.jpg")
+    Song("Snow White Dove", "Bro. Lal", "https://drive.google.com/uc?export=download&id=1tkXoNuMh33ZqBrrOMiKFa8GWZ0onDWT3", "https://i0.wp.com/endtimesmessages.com/wp-content/uploads/2019/03/The-Supernatural-Cloud-1963.jpg"),
+    Song("As The Deer", "Bro. Nischal", "https://drive.google.com/uc?export=download&id=1T3-MiEJQ5E2vK2uiI5TFlp_vjVfURGL8", "https://i0.wp.com/endtimesmessages.com/wp-content/uploads/2019/03/The-Supernatural-Cloud-1963.jpg"),
+    Song("Abba Father", "Bro. Ashish", "https://drive.google.com/uc?export=download&id=1AbGD7hYC1j9p09EaQzpeFjvLIQ_B7gDi", "https://i0.wp.com/endtimesmessages.com/wp-content/uploads/2019/03/The-Supernatural-Cloud-1963.jpg"),
+    Song("I Want To Go", "Bro. Vin Dayal", "https://drive.google.com/uc?export=download&id=1-YGY5T2tJQhlxvSoOV9-7aJue7JrDj-m", "https://i0.wp.com/endtimesmessages.com/wp-content/uploads/2019/03/The-Supernatural-Cloud-1963.jpg"),
+    Song("My Faith Look Up To Thee", "Bro. Branham", "https://drive.google.com/uc?export=download&id=1Sw_Bdg7AH6eKREKr6WB3PUdDUyc9N9Az", "https://i0.wp.com/endtimesmessages.com/wp-content/uploads/2019/03/The-Supernatural-Cloud-1963.jpg")
 )
