@@ -15,14 +15,11 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import com.paam.songbook.model.Song
 import com.paam.songbook.model.sampleSongs
+import com.paam.songbook.model.toMediaItem
 import com.paam.songbook.ui.components.AlbumCard
 import com.paam.songbook.ui.components.GroupedList
 import com.paam.songbook.ui.components.SongList
 
-/**
- * Root scaffold for the app.
- * Hosts HomeScreen + UnifiedPlayer (mini/full) in a BottomSheetScaffold.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScaffold(controller: MediaController) {
@@ -34,27 +31,20 @@ fun PlayerScaffold(controller: MediaController) {
             UnifiedPlayer(
                 controller = controller,
                 isExpanded = isExpanded,
-               // onCollapse = { isExpanded = false }
+                songs = songs
             )
         },
-        sheetPeekHeight = 72.dp // mini-player height
+        sheetPeekHeight = 72.dp
     ) { padding ->
         HomeScreen(
             songs = songs,
             onSongSelected = { song ->
-                val mediaItem = MediaItem.Builder()
-                    .setUri(song.url)
-                    .setMediaMetadata(
-                        MediaMetadata.Builder()
-                            .setTitle(song.title)
-                            .setArtist(song.artist)
-                            .setArtworkUri(Uri.parse(song.albumArt))
-                            .build()
-                    )
-                    .build()
+                // Build full playlist once, jump to selected index
+                val mediaItems = songs.map { it.toMediaItem() }
+                val startIndex = songs.indexOf(song).coerceAtLeast(0)
 
                 try {
-                    controller.setMediaItem(mediaItem)
+                    controller.setMediaItems(mediaItems, startIndex, /*startPositionMs=*/0L)
                     controller.prepare()
                     controller.play()
                     isExpanded = true
@@ -67,9 +57,6 @@ fun PlayerScaffold(controller: MediaController) {
     }
 }
 
-/**
- * Home screen with carousel, tabs, and song list.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -98,7 +85,6 @@ fun HomeScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Carousel
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -108,7 +94,6 @@ fun HomeScreen(
                 }
             }
 
-            // Tabs
             TabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
@@ -119,7 +104,6 @@ fun HomeScreen(
                 }
             }
 
-            // Song list
             when (tabs[selectedTab]) {
                 "All" -> SongList(songs, onSongSelected)
                 "Artists" -> GroupedList(songs.groupBy { it.artist }, onSongSelected)
@@ -129,9 +113,6 @@ fun HomeScreen(
     }
 }
 
-/**
- * Extract folder name from a file path or URI.
- */
 fun extractFolder(path: String): String {
     val cleaned = path.replace("file://", "")
     val segments = cleaned.split('/', '\\').filter { it.isNotBlank() }

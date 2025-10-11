@@ -1,4 +1,8 @@
 package com.paam.songbook.ui
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.QueueMusic
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,16 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.Button
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,19 +33,20 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
+import com.paam.songbook.model.Song
+import com.paam.songbook.model.toMediaItem
 
 @Composable
 fun UnifiedPlayer(
     controller: MediaController,
     isExpanded: Boolean,
-    //onCollapse: () -> Unit
+    songs: List<Song>
 ) {
     var isPlaying by remember { mutableStateOf(controller.isPlaying) }
     var metadata by remember { mutableStateOf(controller.mediaMetadata ?: MediaMetadata.EMPTY) }
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(0L) }
 
-    // Listen for player state changes safely
     DisposableEffect(controller) {
         val listener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlayingNow: Boolean) {
@@ -68,7 +65,6 @@ fun UnifiedPlayer(
         onDispose { controller.removeListener(listener) }
     }
 
-    // Cancelable position updater loop
     LaunchedEffect(isPlaying, controller) {
         while (isActive) {
             if (isPlaying) {
@@ -79,13 +75,11 @@ fun UnifiedPlayer(
         }
     }
 
-    // Null-safe metadata
     val title = metadata.title?.toString().takeUnless { it.isNullOrBlank() } ?: "Unknown"
     val artist = metadata.artist?.toString().takeUnless { it.isNullOrBlank() } ?: "Unknown Artist"
-    val artworkUri = metadata.artworkUri // may be null; painter handles null
+    val artworkUri = metadata.artworkUri
 
     if (!isExpanded) {
-        // Mini player
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -127,7 +121,6 @@ fun UnifiedPlayer(
             }
         }
     } else {
-        // Full player
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -148,9 +141,8 @@ fun UnifiedPlayer(
                 contentScale = ContentScale.Crop
             )
 
-            // Progress
             Column {
-                val safeDuration = duration.coerceAtLeast(1L) // avoid 0f range
+                val safeDuration = duration.coerceAtLeast(1L)
                 val safePosition = position.coerceIn(0L, safeDuration)
 
                 Slider(
@@ -179,6 +171,7 @@ fun UnifiedPlayer(
                 Text(artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
 
+            // Transport controls
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -203,7 +196,63 @@ fun UnifiedPlayer(
             }
 
             Spacer(Modifier.height(16.dp))
-            //TextButton(onClick = onCollapse) { Text("Collapse") }
+
+            // Extra controls: Play All, Shuffle, Repeat
+            // Extra controls: Play All, Shuffle, Repeat
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Play All
+                IconButton(onClick = {
+                    val mediaItems = songs.map { it.toMediaItem() }
+                    controller.setMediaItems(mediaItems)
+                    controller.prepare()
+                    controller.play()
+                }) {
+                    Icon(Icons.Filled.QueueMusic, contentDescription = "Play All")
+                }
+
+                // Shuffle
+                IconButton(onClick = {
+                    controller.shuffleModeEnabled = !controller.shuffleModeEnabled
+                }) {
+                    Icon(
+                        Icons.Filled.Shuffle,
+                        contentDescription = "Shuffle",
+                        tint = if (controller.shuffleModeEnabled)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                // Repeat
+                IconButton(onClick = {
+                    val newMode = when (controller.repeatMode) {
+                        Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ONE
+                        Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_ALL
+                        else -> Player.REPEAT_MODE_OFF
+                    }
+                    controller.repeatMode = newMode
+                }) {
+                    val icon = when (controller.repeatMode) {
+                        Player.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
+                        Player.REPEAT_MODE_ALL -> Icons.Filled.Repeat
+                        else -> Icons.Filled.Repeat
+                    }
+                    Icon(
+                        icon,
+                        contentDescription = "Repeat",
+                        tint = if (controller.repeatMode != Player.REPEAT_MODE_OFF)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
         }
     }
 }
