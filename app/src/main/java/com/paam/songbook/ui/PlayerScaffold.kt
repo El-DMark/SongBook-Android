@@ -10,13 +10,15 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
-import com.paam.songbook.model.sampleSongs
+import com.paam.songbook.model.SongRepository
 import com.paam.songbook.model.toMediaItem
 import com.paam.songbook.ui.components.AlbumCard
 import com.paam.songbook.ui.components.GroupedList
@@ -26,7 +28,16 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScaffold(controller: MediaController, navController: NavController) {
-    val songs = remember { sampleSongs() }
+    val context = LocalContext.current
+    var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        val jsonUrl = "https://drive.google.com/uc?export=download&id=1X6vU7zurfsh7im0jZ6r2Hd9x-ewZNn3h"
+        val loadedSongs = SongRepository.loadSongs(context, jsonUrl)
+        println("🎧 Loaded ${loadedSongs.size} songs from Drive")
+        songs = loadedSongs
+    }
+
     var isExpanded by remember { mutableStateOf(false) }
 
     BottomSheetScaffold(
@@ -38,6 +49,7 @@ fun PlayerScaffold(controller: MediaController, navController: NavController) {
         HomeScreen(
             songs = songs,
             onSongSelected = { song ->
+                // ✅ Build MediaItems with forced MIME type
                 val mediaItems = songs.map { it.toMediaItem() }
                 val startIndex = songs.indexOf(song).coerceAtLeast(0)
                 controller.setMediaItems(mediaItems, startIndex, 0L)
@@ -89,7 +101,6 @@ fun HomeScreen(
                         navController.navigate("about")
                     }
                 )
-
             }
         }
     ) {
@@ -161,7 +172,6 @@ fun HomeScreen(
         }
     }
 }
-
 
 fun extractFolder(path: String): String {
     val cleaned = path.replace("file://", "")

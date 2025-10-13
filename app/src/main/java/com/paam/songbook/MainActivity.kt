@@ -16,6 +16,7 @@ import com.paam.songbook.ui.settings.SettingsScreen
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import androidx.navigation.compose.*
+import com.paam.songbook.model.SongRepository
 import com.paam.songbook.ui.about.AboutScreen
 
 @UnstableApi
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
                 this@MainActivity,
                 ComponentName(this@MainActivity, PlayerService::class.java)
             )
+
             val controllerFuture =
                 MediaController.Builder(this@MainActivity, sessionToken).buildAsync()
             controller = controllerFuture.await()

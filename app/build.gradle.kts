@@ -41,6 +41,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
+
 }
 
 dependencies {
@@ -97,4 +98,5 @@ dependencies {
     implementation("androidx.media3:media3-session:1.4.1")
 // For coroutines + Guava interop
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
+    implementation("com.google.code.gson:gson:2.10.1")
 }

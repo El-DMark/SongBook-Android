@@ -56,6 +56,9 @@ fun UnifiedPlayer(
                 metadata = mediaMetadata
                 duration = controller.duration.takeIf { it > 0 } ?: 0L
                 position = controller.currentPosition.takeIf { it >= 0 } ?: 0L
+
+
+
             }
             override fun onPlaybackStateChanged(playbackState: Int) {
                 duration = controller.duration.takeIf { it > 0 } ?: 0L
