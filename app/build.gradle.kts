@@ -67,6 +67,7 @@ dependencies {
     // Database
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.androidx.compose.material3)
     kapt(libs.room.compiler)
 
     // Media3 (✅ use only one consistent version)

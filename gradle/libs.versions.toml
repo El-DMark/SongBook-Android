@@ -1,5 +1,5 @@
 [versions]
-agp = "8.5.2"
+agp = "8.13.0"
 kotlin = "1.9.25"
 hilt = "2.48"
 compose = "1.7.0"
@@ -21,6 +21,7 @@ compose-bom = "2024.05.00"
 appcompat = "1.6.1"
 material = "1.10.0"
 jetbrains-kotlin-jvm = "1.9.25"
+material3-version = "1.4.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -65,3 +66,4 @@ androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-j
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-version" }

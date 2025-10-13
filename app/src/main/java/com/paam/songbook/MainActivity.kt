@@ -11,7 +11,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.paam.songbook.player.PlayerService
-import com.paam.songbook.ui.PlayerScaffold
+import com.paam.songbook.ui.MainScaffold
 import com.paam.songbook.ui.settings.SettingsScreen
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(navController, startDestination = "home") {
                         composable("home") {
-                            PlayerScaffold(
+                            MainScaffold(
                                 controller = controller!!,
                                 navController = navController
                             )

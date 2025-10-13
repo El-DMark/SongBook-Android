@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 fun SettingsScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = { Text("Settings") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
