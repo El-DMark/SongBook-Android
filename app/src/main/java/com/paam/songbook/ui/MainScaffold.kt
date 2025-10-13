@@ -24,11 +24,12 @@ fun MainScaffold(controller: MediaController, navController: NavController) {
         controller = controller,
         songs = songs,
         isExpanded = isExpanded,
-        onCollapse = { isExpanded = false }
+        onExpand = { isExpanded = true } // ✅ Corrected
     ) { modifier ->
         HomeHost(
             songs = songs,
             navController = navController,
+            controller = controller,
             onSongSelected = { song ->
                 val mediaItems = songs.map { it.toMediaItem() }
                 val startIndex = songs.indexOf(song).coerceAtLeast(0)
@@ -40,4 +41,6 @@ fun MainScaffold(controller: MediaController, navController: NavController) {
             modifier = modifier
         )
     }
-}
+
+    }
+

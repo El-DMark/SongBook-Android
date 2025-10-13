@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,19 +38,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
+import com.paam.songbook.ui.UnifiedPlayer
 import com.paam.songbook.ui.components.AlbumCard
 import com.paam.songbook.ui.components.GroupedList
 import com.paam.songbook.ui.components.SongList
 import com.paam.songbook.ui.extractFolder
 import kotlinx.coroutines.launch
-
-
+import androidx.media3.session.MediaController
+import androidx.compose.material3.SheetValue
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     songs: List<Song>,
     onSongSelected: (Song) -> Unit,
     navController: NavController,
+    controller: MediaController,
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(0) }
@@ -64,27 +68,15 @@ fun HomeScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                Text(
-                    "Options",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text("Settings") },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("settings")
-                    }
-                )
-                NavigationDrawerItem(
-                    label = { Text("About") },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("about")
-                    }
-                )
+                Text("Options", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
+                NavigationDrawerItem(label = { Text("Settings") }, selected = false, onClick = {
+                    scope.launch { drawerState.close() }
+                    navController.navigate("settings")
+                })
+                NavigationDrawerItem(label = { Text("About") }, selected = false, onClick = {
+                    scope.launch { drawerState.close() }
+                    navController.navigate("about")
+                })
             }
         }
     ) {
@@ -101,7 +93,6 @@ fun HomeScreen(
                         }
                     }
                 )
-
             },
             modifier = modifier
         ) { padding ->
