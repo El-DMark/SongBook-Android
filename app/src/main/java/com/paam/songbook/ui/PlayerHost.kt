@@ -2,47 +2,69 @@ package com.paam.songbook.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.paam.songbook.model.Song
-import kotlinx.coroutines.launch
+import com.paam.songbook.ui.components.PlayerScaffold
+import com.paam.songbook.media.toSong
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerHost(
     controller: MediaController,
     songs: List<Song>,
-    isExpanded: Boolean,
-    onExpand: () -> Unit, // ✅ Correct parameter name
-    content: @Composable (Modifier) -> Unit
+    content: @Composable () -> Unit
 ) {
-    val sheetState = rememberBottomSheetScaffoldState()
-    val scope = rememberCoroutineScope()
+    var currentSong by remember { mutableStateOf<Song?>(null) }
+    var isPlaying by remember { mutableStateOf(false) }
+    var duration by remember { mutableStateOf(0L) }
+    var position by remember { mutableStateOf(0L) }
 
-    BottomSheetScaffold(
-        scaffoldState = sheetState,
-        sheetPeekHeight = 72.dp,
-        sheetContent = {
-            UnifiedPlayer(
-                controller = controller,
-                isExpanded = sheetState.bottomSheetState.currentValue == SheetValue.Expanded,
-                songs = songs,
-                onExpand = { scope.launch { sheetState.bottomSheetState.expand() } } // ✅ triggers expansion
-            )
+    // Listen for song changes and playback state
+    DisposableEffect(controller) {
+        val listener = object : Player.Listener {
+            override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
+                currentSong = item?.toSong()
+                duration = controller.duration.coerceAtLeast(0L)
+            }
 
+            override fun onIsPlayingChanged(isPlayingNow: Boolean) {
+                isPlaying = isPlayingNow
+            }
+        }
+        controller.addListener(listener)
+        onDispose { controller.removeListener(listener) }
+    }
+
+    // Poll playback position while playing
+    LaunchedEffect(isPlaying) {
+        while (isPlaying) {
+            position = controller.currentPosition
+            duration = controller.duration.coerceAtLeast(0L)
+            delay(1000) // update every second
+        }
+    }
+
+    PlayerScaffold(
+        currentSong = currentSong,
+        isPlaying = isPlaying,
+        position = position,
+        duration = duration,
+        onPlayPause = {
+            if (controller.isPlaying) controller.pause() else controller.play()
         },
-        sheetDragHandle = { } // ✅ Empty composable removes the hinge
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            content(Modifier)
+        onNext = { controller.seekToNext() },
+        onPrevious = { controller.seekToPrevious() },
+        onSeek = { seekPos -> controller.seekTo(seekPos) }
+    ) {
+        Box(modifier = Modifier.padding(bottom = 72.dp)) {
+            content()
         }
     }
 }
-

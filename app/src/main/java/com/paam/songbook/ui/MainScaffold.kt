@@ -12,7 +12,6 @@ import com.paam.songbook.model.toMediaItem
 fun MainScaffold(controller: MediaController, navController: NavController) {
     val context = LocalContext.current
     var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
-    var isExpanded by remember { mutableStateOf(false) }
 
     // Load songs once
     LaunchedEffect(Unit) {
@@ -22,10 +21,8 @@ fun MainScaffold(controller: MediaController, navController: NavController) {
 
     PlayerHost(
         controller = controller,
-        songs = songs,
-        isExpanded = isExpanded,
-        onExpand = { isExpanded = true } // ✅ Corrected
-    ) { modifier ->
+        songs = songs
+    ) {
         HomeHost(
             songs = songs,
             navController = navController,
@@ -36,11 +33,7 @@ fun MainScaffold(controller: MediaController, navController: NavController) {
                 controller.setMediaItems(mediaItems, startIndex, 0L)
                 controller.prepare()
                 controller.play()
-                isExpanded = true
-            },
-            modifier = modifier
+            }
         )
     }
-
-    }
-
+}

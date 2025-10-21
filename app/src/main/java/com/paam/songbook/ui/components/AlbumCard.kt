@@ -1,7 +1,7 @@
 package com.paam.songbook.ui.components
 
-
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +37,30 @@ fun AlbumCard(song: Song, onClick: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun AlbumCardSkeleton() {
+    Column(
+        modifier = Modifier
+            .width(120.dp)
+            .padding(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .shimmerEffect()
+        )
+        Spacer(Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .height(14.dp)
+                .fillMaxWidth(0.8f)
+                .clip(RoundedCornerShape(4.dp))
+                .shimmerEffect()
         )
     }
 }
