@@ -6,14 +6,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
 import com.paam.songbook.ui.components.*
-import com.paam.songbook.ui.extractFolder
 import kotlinx.coroutines.launch
 import androidx.media3.session.MediaController
 
@@ -26,11 +24,9 @@ fun HomeScreen(
     controller: MediaController,
     modifier: Modifier = Modifier
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("All", "Artists", "Folders")
-
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+    var selectedLanguage by remember { mutableStateOf<String?>(null) }
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -84,12 +80,11 @@ fun HomeScreen(
                     .padding(padding)
                     .fillMaxSize()
             ) {
-                // Animated search bar
                 AnimatedVisibility(visible = isSearching) {
                     SearchBar(
                         query = query,
                         onQueryChange = { query = it },
-                        onSearch = { /* trigger search */ },
+                        onSearch = {},
                         active = false,
                         onActiveChange = {},
                         placeholder = { Text("Search songs...") },
@@ -99,40 +94,27 @@ fun HomeScreen(
                     ) {}
                 }
 
-                // Featured row (extracted)
-                FeaturedRow(songs = songs, onSongSelected = onSongSelected)
+                NewlyAddedCarousel(
+                    songs = songs,
+                    onSongSelected = onSongSelected
+                )
 
-                // Tabs
-                TabRow(
-                    selectedTabIndex = selectedTab,
-                    indicator = { tabPositions ->
-                        TabRowDefaults.Indicator(
-                            Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                ) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            text = { Text(title) }
-                        )
-                    }
+                LanguageFilterRow(
+                    languages = listOf("Hindi", "English", "Punjabi", "Tamil"),
+                    selectedLanguage = selectedLanguage,
+                    onLanguageSelected = { selectedLanguage = it }
+                )
+
+                val filteredSongs = songs.filter {
+                    (selectedLanguage == null || it.language == selectedLanguage) &&
+                            (query.isBlank() || it.title.contains(query, true) || it.artist.contains(query, true))
                 }
-
-                // Filtered songs
-                val filteredSongs = if (query.isNotBlank()) {
-                    songs.filter {
-                        it.title.contains(query, ignoreCase = true) ||
-                                it.artist.contains(query, ignoreCase = true)
-                    }
-                } else songs
 
                 SongList(
                     songs = filteredSongs,
                     onSongSelected = onSongSelected,
-                    isLoading = songs.isEmpty()
+                    isLoading = songs.isEmpty(),
+                    useGrid = true
                 )
             }
         }

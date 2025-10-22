@@ -12,12 +12,26 @@ object SongRepository {
     private const val PREF_NAME = "song_cache"
     private const val KEY_JSON = "cached_json"
 
-    suspend fun loadSongs(context: Context, jsonUrl: String): List<Song> {
-        val json = fetchJson(jsonUrl)
-        //println("🎧 Raw JSON from Drive:\n$json")
-
-        cacheJson(context, json)
-        return parseJson(json)
+    suspend fun loadSongs(context: Context, jsonUrl: String, useCacheOnly: Boolean = false): List<Song> {
+        return try {
+            val json = if (useCacheOnly) {
+                getCachedJson(context) ?: throw Exception("No cached data available")
+            } else {
+                val fetched = fetchJson(jsonUrl)
+                cacheJson(context, fetched)
+                fetched
+            }
+            parseJson(json)
+        } catch (e: Exception) {
+            println("⚠️ Failed to load from network: ${e.message}")
+            getCachedJson(context)?.let {
+                println("📦 Using cached data")
+                parseJson(it)
+            } ?: run {
+                println("❌ No cached data available")
+                emptyList()
+            }
+        }
     }
 
     private suspend fun fetchJson(url: String): String = withContext(Dispatchers.IO) {
@@ -58,7 +72,7 @@ object SongRepository {
             Gson().fromJson(json, type)
         } catch (e: Exception) {
             println("❌ JSON parsing failed: ${e.message}")
-            throw e
+            emptyList()
         }
     }
 }
