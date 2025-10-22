@@ -24,6 +24,7 @@ jetbrains-kotlin-jvm = "1.9.25"
 material3-version = "1.4.0"
 runtime = "1.9.3"
 animation-core = "1.9.3"
+compose-material = "1.5.3"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -71,3 +72,4 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-version" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animation-core" }
+androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "compose-material" }

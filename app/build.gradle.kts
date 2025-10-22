@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.paam.songbook"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.compose.material)
     kapt(libs.room.compiler)
 
     // Media3 (✅ use only one consistent version)
