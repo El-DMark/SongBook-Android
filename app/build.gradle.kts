@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.compose.animation.core)
     kapt(libs.room.compiler)
 
     // Media3 (✅ use only one consistent version)
@@ -102,5 +103,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.valentinilk.shimmer:compose-shimmer:1.0.3")
-
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.6")
 }

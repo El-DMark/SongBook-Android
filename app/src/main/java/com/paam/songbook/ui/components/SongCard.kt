@@ -4,14 +4,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.paam.songbook.model.Song
 
 @Composable
@@ -22,23 +27,39 @@ fun SongCard(
 ) {
     Column(
         modifier = modifier
-            .width(160.dp)
             .padding(4.dp)
             .clickable { onClick() }
     ) {
-        // Album art
-        Image(
-            painter = rememberAsyncImagePainter(song.albumArt),
-            contentDescription = song.title,
-            modifier = Modifier
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
+        if (song.albumArt.isBlank()) {
+            // Show music icon if no URL
+            Icon(
+                imageVector = Icons.Default.MusicNote,
+                contentDescription = "Music note",
+                modifier = Modifier
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .padding(24.dp), // center the icon
+                tint = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            // Try to load album art
+            Image(
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(song.albumArt)
+                        .crossfade(true)
+                        .build()
+                ),
+                contentDescription = song.title,
+                modifier = Modifier
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // Title
         Text(
             text = song.title,
             style = MaterialTheme.typography.bodyMedium,
@@ -47,7 +68,6 @@ fun SongCard(
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        // Artist
         Text(
             text = song.artist,
             style = MaterialTheme.typography.bodySmall,

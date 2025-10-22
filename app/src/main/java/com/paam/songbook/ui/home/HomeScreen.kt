@@ -100,13 +100,13 @@ fun HomeScreen(
                 )
 
                 LanguageFilterRow(
-                    languages = listOf("Hindi", "English", "Punjabi", "Tamil"),
+                    languages = listOf("Hindi", "English", "Punjabi"),
                     selectedLanguage = selectedLanguage,
                     onLanguageSelected = { selectedLanguage = it }
                 )
 
                 val filteredSongs = songs.filter {
-                    (selectedLanguage == null || it.language == selectedLanguage) &&
+                    (selectedLanguage == null || it.Language == selectedLanguage) &&
                             (query.isBlank() || it.title.contains(query, true) || it.artist.contains(query, true))
                 }
 

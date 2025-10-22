@@ -16,8 +16,8 @@ data class Song(
     val url: String,
     val albumArt: String,
     val lyrics: String,
-    val language: String,      // e.g. "Hindi", "English"
-    val timestamp: Long
+    val Language: String,      // e.g. "Hindi", "English"
+    val timestamp: String
 )
 
 

@@ -13,11 +13,11 @@ fun MainScaffold(controller: MediaController, navController: NavController) {
     val context = LocalContext.current
     var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
 
-    //https://drive.google.com/file/d/1KcY6H496RaFyo-2nfzsxqIaKcVD44PCx/view?usp=sharing
+    //https://drive.google.com/file/d/14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C/view?usp=sharing
     //old https://drive.google.com/uc?export=download&id=1X6vU7zurfsh7im0jZ6r2Hd9x-ewZNn3h"
     // Load songs once
     LaunchedEffect(Unit) {
-        val jsonUrl = "https://drive.google.com/uc?export=download&id=1KcY6H496RaFyo-2nfzsxqIaKcVD44PCx"
+        val jsonUrl = "https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C"
         songs = SongRepository.loadSongs(context, jsonUrl)
     }
 

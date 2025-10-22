@@ -2,7 +2,8 @@ package com.paam.songbook.ui.components
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,8 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
 import com.paam.songbook.model.Song
+import com.valentinilk.shimmer.shimmer
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -48,15 +50,33 @@ fun FullPlayer(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Blurred background
-        Image(
-            painter = rememberAsyncImagePainter(currentSong.albumArt),
+        // Blurred background with fallback + shimmer
+        SubcomposeAsyncImage(
+            model = currentSong.albumArt,
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
                 .blur(40.dp),
             contentScale = ContentScale.Crop,
-            alpha = 0.5f
+            alpha = 0.5f,
+            loading = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .shimmer()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+            },
+            error = {
+                Icon(
+                    imageVector = Icons.Default.MusicNote,
+                    contentDescription = "Fallback",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(64.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                )
+            }
         )
 
         Column(
@@ -72,14 +92,31 @@ fun FullPlayer(
 
             Spacer(Modifier.height(16.dp))
 
-            // Album art
-            Image(
-                painter = rememberAsyncImagePainter(currentSong.albumArt),
-                contentDescription = null,
+            // Album art with shimmer + fallback
+            SubcomposeAsyncImage(
+                model = currentSong.albumArt,
+                contentDescription = currentSong.title,
                 modifier = Modifier
                     .size(300.dp)
                     .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .size(300.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .shimmer()
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    )
+                },
+                error = {
+                    Icon(
+                        imageVector = Icons.Default.MusicNote,
+                        contentDescription = "Fallback",
+                        modifier = Modifier.size(96.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             )
 
             Spacer(Modifier.height(24.dp))
@@ -94,25 +131,49 @@ fun FullPlayer(
 
             Spacer(Modifier.height(24.dp))
 
-            // Slider with Crossfade preview bubble + scrubbing line
+            // Slider with preview bubble
+            // Progress bar with preview bubble
+            // State only for user interaction
+            var sliderPosition by remember { mutableStateOf(0f) }
+            var isUserSeeking by remember { mutableStateOf(false) }
+            var previewTime by remember { mutableStateOf<Long?>(null) }
+
+            val playbackFraction = if (duration > 0) position / duration.toFloat() else 0f
+
+// The value shown on the slider: playback when not seeking, user drag when seeking
+            val sliderValue = if (isUserSeeking) sliderPosition else playbackFraction
+
+// Animate changes so skips/jumps are smooth
+            val animatedSliderValue by animateFloatAsState(
+                targetValue = sliderValue,
+                animationSpec = tween(durationMillis = 300), // adjust speed if needed
+                label = "SliderAnim"
+            )
+
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val maxWidthPx = with(density) { maxWidth.toPx() }
+                val maxWidthPx = with(density) { this@BoxWithConstraints.maxWidth.toPx() }
 
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    Crossfade(
-                        targetState = previewTime,
-                        label = "PreviewBubble"
-                    ) { time ->
+                    Crossfade(targetState = previewTime, label = "PreviewBubble") { time ->
                         if (time != null && duration > 0) {
-                            val offsetPercent = sliderPosition.coerceIn(0f, 1f)
-                            val offsetDp = with(density) { (offsetPercent * (maxWidthPx - 32)).toDp() }
+                            val offsetPercent = animatedSliderValue.coerceIn(0f, 1f)
+                            val rawOffset = offsetPercent * (maxWidthPx - 32)
+                            val offsetDp = with(density) { rawOffset.toDp() }
+                            val clampedOffset = offsetDp.coerceIn(
+                                0.dp,
+                                this@BoxWithConstraints.maxWidth - 40.dp
+                            )
 
-                            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            ) {
                                 // Vertical scrubbing line
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
-                                        .offset(x = offsetDp)
+                                        .offset(x = clampedOffset)
                                         .width(2.dp)
                                         .height(24.dp)
                                         .background(MaterialTheme.colorScheme.primary)
@@ -125,7 +186,7 @@ fun FullPlayer(
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
-                                        .offset(x = offsetDp - 20.dp, y = (-28).dp)
+                                        .offset(x = clampedOffset - 20.dp, y = (-28).dp)
                                         .background(
                                             color = MaterialTheme.colorScheme.primary,
                                             shape = RoundedCornerShape(6.dp)
@@ -137,7 +198,7 @@ fun FullPlayer(
                     }
 
                     Slider(
-                        value = sliderPosition,
+                        value = animatedSliderValue,
                         onValueChange = { newValue ->
                             sliderPosition = newValue
                             isUserSeeking = true
@@ -153,6 +214,8 @@ fun FullPlayer(
                     )
                 }
             }
+
+
 
             Spacer(Modifier.height(8.dp))
 
@@ -189,8 +252,7 @@ fun FullPlayer(
             }
         }
     }
-    }
-
+}
 
 private fun formatTime(ms: Long): String {
     val totalSeconds = ms / 1000

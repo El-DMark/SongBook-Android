@@ -8,14 +8,14 @@ fun MediaItem.toSong(): Song {
     val uri = localConfiguration?.uri?.toString() ?: ""
 
     return Song(
-        songID = (md.title?.toString() + md.artist?.toString() + uri).hashCode(),
-        title = md.title?.toString() ?: "Unknown Title",
-        artist = md.artist?.toString() ?: "Unknown Artist",
+        songID = uri.hashCode(), // stable ID based on URI
+        title = md.title?.toString().orEmpty().ifBlank { "Unknown Title" },
+        artist = md.artist?.toString().orEmpty().ifBlank { "Unknown Artist" },
         url = uri,
-        albumArt = md.artworkUri?.toString() ?: "",
+        albumArt = md.artworkUri?.toString().orEmpty(),
         lyrics = "",
-        language = md.extras?.getString("language") ?: "Unknown",
-        timestamp = md.extras?.getLong("timestamp") ?: System.currentTimeMillis()
+        Language = md.extras?.getString("Language") ?: "Unknown",
+        // ✅ store as String, since your JSON has "2025-10-22"
+        timestamp = md.extras?.getString("timestamp") ?: "1970-01-01"
     )
 }
-

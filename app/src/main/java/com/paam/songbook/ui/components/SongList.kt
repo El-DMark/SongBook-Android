@@ -47,7 +47,9 @@ fun SongList(
                 items(songs) { song ->
                     SongCard(
                         song = song,
-                        onClick = { onSongSelected(song) }
+                        onClick = { onSongSelected(song) },
+                        modifier = Modifier.width(10.dp)
+
                     )
                 }
             }
