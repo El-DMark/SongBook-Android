@@ -8,12 +8,14 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
 import com.paam.songbook.ui.components.*
 import kotlinx.coroutines.launch
-import androidx.media3.session.MediaController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,47 +77,54 @@ fun HomeScreen(
             },
             modifier = modifier
         ) { padding ->
-            Column(
+            // ✅ Only apply top/start/end padding, skip bottom
+            Box(
                 modifier = Modifier
-                    .padding(padding)
+                    .padding(
+                        top = padding.calculateTopPadding(),
+                        start = padding.calculateStartPadding(LayoutDirection.Ltr),
+                        end = padding.calculateEndPadding(LayoutDirection.Ltr)
+                    )
                     .fillMaxSize()
             ) {
-                AnimatedVisibility(visible = isSearching) {
-                    SearchBar(
-                        query = query,
-                        onQueryChange = { query = it },
-                        onSearch = {},
-                        active = false,
-                        onActiveChange = {},
-                        placeholder = { Text("Search songs...") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    ) {}
+                Column(Modifier.fillMaxSize()) {
+                    AnimatedVisibility(visible = isSearching) {
+                        SearchBar(
+                            query = query,
+                            onQueryChange = { query = it },
+                            onSearch = {},
+                            active = false,
+                            onActiveChange = {},
+                            placeholder = { Text("Search songs...") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        ) {}
+                    }
+
+                    NewlyAddedCarousel(
+                        songs = songs,
+                        onSongSelected = onSongSelected
+                    )
+
+                    LanguageFilterRow(
+                        languages = listOf("Hindi", "English", "Punjabi"),
+                        selectedLanguage = selectedLanguage,
+                        onLanguageSelected = { selectedLanguage = it }
+                    )
+
+                    val filteredSongs = songs.filter {
+                        (selectedLanguage == null || it.Language == selectedLanguage) &&
+                                (query.isBlank() || it.title.contains(query, true) || it.artist.contains(query, true))
+                    }
+
+                    SongList(
+                        songs = filteredSongs,
+                        onSongSelected = onSongSelected,
+                        isLoading = songs.isEmpty(),
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
-
-                NewlyAddedCarousel(
-                    songs = songs,
-                    onSongSelected = onSongSelected
-                )
-
-                LanguageFilterRow(
-                    languages = listOf("Hindi", "English", "Punjabi"),
-                    selectedLanguage = selectedLanguage,
-                    onLanguageSelected = { selectedLanguage = it }
-                )
-
-                val filteredSongs = songs.filter {
-                    (selectedLanguage == null || it.Language == selectedLanguage) &&
-                            (query.isBlank() || it.title.contains(query, true) || it.artist.contains(query, true))
-                }
-
-                SongList(
-                    songs = filteredSongs,
-                    onSongSelected = onSongSelected,
-                    isLoading = songs.isEmpty(),
-                    useGrid = true
-                )
             }
         }
     }

@@ -25,6 +25,7 @@ material3-version = "1.4.0"
 runtime = "1.9.3"
 animation-core = "1.9.3"
 compose-material = "1.5.3"
+palette-ktx = "1.0.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -73,3 +74,4 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animation-core" }
 androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "compose-material" }
+androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette-ktx" }

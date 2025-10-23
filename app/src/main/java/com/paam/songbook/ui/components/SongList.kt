@@ -1,14 +1,20 @@
 package com.paam.songbook.ui.components
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import com.paam.songbook.model.Song
 
 @Composable
@@ -16,43 +22,51 @@ fun SongList(
     songs: List<Song>,
     onSongSelected: (Song) -> Unit,
     isLoading: Boolean,
-    modifier: Modifier = Modifier,
-    useGrid: Boolean = true
+    modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.padding(horizontal = 16.dp)) {
-        if (isLoading) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) {
-                items(6) {
-                    ShimmerSongCard()
-                }
+    if (isLoading) {
+        // You can show shimmer/skeleton loaders here
+        Text("Loading songs...", modifier = Modifier.padding(16.dp))
+    } else {
+        LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            items(songs) { song ->
+                SongListItem(song = song, onClick = { onSongSelected(song) })
             }
-        } else if (songs.isEmpty()) {
-            Text(
-                text = "No songs found.",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 24.dp)
-            )
-        } else {
-            LazyVerticalGrid(
-                columns = if (useGrid) GridCells.Fixed(2) else GridCells.Fixed(1),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) {
-                items(songs) { song ->
-                    SongCard(
-                        song = song,
-                        onClick = { onSongSelected(song) },
-                        modifier = Modifier.width(10.dp)
+        }
+    }
+}
 
-                    )
-                }
-            }
+@Composable
+fun SongListItem(song: Song, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(song.albumArt),
+            contentDescription = null,
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(6.dp)),
+            contentScale = ContentScale.Crop
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(Modifier.weight(1f)) {
+            Text(song.title, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+            Text(
+                song.artist,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
         }
     }
 }
