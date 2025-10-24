@@ -12,18 +12,20 @@ fun HomeHost(
     songs: List<Song>,
     onSongSelected: (Song) -> Unit,
     navController: NavController,
-    controller: MediaController, // ✅ Add this parameter
+    controller: MediaController,
+    query: String, // 🔹 add this
     modifier: Modifier = Modifier
 ) {
     HomeScreen(
         songs = songs,
         onSongSelected = onSongSelected,
         navController = navController,
-        controller = controller, // ✅ Now valid
+        controller = controller,
+        query = query,   // 🔹 pass it down
         modifier = modifier
     )
-
 }
+
 
 fun extractFolder(path: String): String {
     val cleaned = path.replace("file://", "")

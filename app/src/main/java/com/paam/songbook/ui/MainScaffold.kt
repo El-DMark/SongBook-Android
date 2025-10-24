@@ -7,17 +7,17 @@ import androidx.navigation.NavController
 import com.paam.songbook.model.Song
 import com.paam.songbook.model.SongRepository
 import com.paam.songbook.model.toMediaItem
+import com.paam.songbook.ui.main.MainScreen
 
 @Composable
 fun MainScaffold(controller: MediaController, navController: NavController) {
     val context = LocalContext.current
     var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
 
-    //https://drive.google.com/file/d/14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C/view?usp=sharing
-    //old https://drive.google.com/uc?export=download&id=1X6vU7zurfsh7im0jZ6r2Hd9x-ewZNn3h"
     // Load songs once
     LaunchedEffect(Unit) {
-        val jsonUrl = "https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C"
+        val jsonUrl =
+            "https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C"
         songs = SongRepository.loadSongs(context, jsonUrl)
     }
 
@@ -25,17 +25,10 @@ fun MainScaffold(controller: MediaController, navController: NavController) {
         controller = controller,
         songs = songs
     ) {
-        HomeHost(
+        MainScreen(
             songs = songs,
             navController = navController,
-            controller = controller,
-            onSongSelected = { song ->
-                val mediaItems = songs.map { it.toMediaItem() }
-                val startIndex = songs.indexOf(song).coerceAtLeast(0)
-                controller.setMediaItems(mediaItems, startIndex, 0L)
-                controller.prepare()
-                controller.play()
-            }
+            controller = controller
         )
     }
 }

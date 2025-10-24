@@ -28,6 +28,8 @@ compose-material = "1.5.3"
 palette-ktx = "1.0.0"
 animation = "1.9.4"
 ui = "1.9.4"
+foundation = "1.9.4"
+animation-core-version = "1.9.4"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -79,3 +81,5 @@ androidx-compose-material = { group = "androidx.wear.compose", name = "compose-m
 androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette-ktx" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animation-core-version" }

@@ -74,6 +74,8 @@ dependencies {
     implementation(libs.androidx.palette.ktx)
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.animation.core)
     kapt(libs.room.compiler)
 
     // Media3 (✅ use only one consistent version)
