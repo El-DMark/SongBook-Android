@@ -1,5 +1,6 @@
 package com.paam.songbook.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -9,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import com.google.gson.Gson
 import com.paam.songbook.model.Song
 import com.paam.songbook.ui.components.PlayerScaffold
 import com.paam.songbook.media.toSong
@@ -32,6 +34,11 @@ fun PlayerHost(
             override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
                 currentSong = item?.toSong()
                 duration = controller.duration.coerceAtLeast(0L)
+                currentSong?.let {
+                    val json = Gson().toJson(it)
+                    Log.d("CurrentSongJSON", json)
+                }
+
             }
 
             override fun onIsPlayingChanged(isPlayingNow: Boolean) {
@@ -39,6 +46,12 @@ fun PlayerHost(
             }
         }
         controller.addListener(listener)
+
+        // 🔹 Initialize immediately so first song shows up
+        currentSong = controller.currentMediaItem?.toSong()
+        isPlaying = controller.isPlaying
+        duration = controller.duration.coerceAtLeast(0L)
+
         onDispose { controller.removeListener(listener) }
     }
 
@@ -51,20 +64,26 @@ fun PlayerHost(
         }
     }
 
-    PlayerScaffold(
-        currentSong = currentSong,
-        isPlaying = isPlaying,
-        position = position,
-        duration = duration,
-        onPlayPause = {
-            if (controller.isPlaying) controller.pause() else controller.play()
-        },
-        onNext = { controller.seekToNext() },
-        onPrevious = { controller.seekToPrevious() },
-        onSeek = { seekPos -> controller.seekTo(seekPos) }
-    ) {
-        Box(modifier = Modifier.padding(bottom = 72.dp)) {
-            content()
+    // 🔹 Only show mini‑player if a song is active
+    if (currentSong != null) {
+        PlayerScaffold(
+            currentSong = currentSong,
+            isPlaying = isPlaying,
+            position = position,
+            duration = duration,
+            onPlayPause = {
+                if (controller.isPlaying) controller.pause() else controller.play()
+            },
+            onNext = { controller.seekToNext() },
+            onPrevious = { controller.seekToPrevious() },
+            onSeek = { seekPos -> controller.seekTo(seekPos) }
+        ) {
+            Box(modifier = Modifier.padding(bottom = 0.dp)) {
+                content()
+            }
         }
+    } else {
+        // No active song → just show content without reserved space
+        content()
     }
 }

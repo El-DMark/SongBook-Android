@@ -19,6 +19,9 @@ import com.paam.songbook.model.SongRepository
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import androidx.navigation.compose.*
+import com.paam.songbook.model.Song
+import com.paam.songbook.model.toMediaItem
+import com.paam.songbook.ui.MainScaffold
 
 @UnstableApi
 class MainActivity : ComponentActivity() {
@@ -38,8 +41,9 @@ class MainActivity : ComponentActivity() {
                 MediaController.Builder(this@MainActivity, sessionToken).buildAsync()
             controller = controllerFuture.await()
 
-            // 🔹 Load songs from repository (network + cache)
-            val jsonUrl = "https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C" // <-- replace with your actual URL
+            // 🔹 Load songs once here
+            val jsonUrl =
+                "https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C"
             val songs = SongRepository.loadSongs(this@MainActivity, jsonUrl)
 
             setContent {
@@ -47,48 +51,61 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
 
                     NavHost(navController, startDestination = "main") {
-                        // 🔹 Main bottom navigation screen
                         composable("main") {
-                            MainScreen(
-                                songs = songs,
+                            // 🔹 Pass songs down
+                            MainScaffold(
+                                controller = controller!!,
                                 navController = navController,
-                                controller = controller!!
+                                songs = songs
                             )
                         }
-                        // 🔹 Settings
                         composable("settings") {
                             SettingsScreen(onBack = { navController.popBackStack() })
                         }
-                        // 🔹 About
                         composable("about") {
                             AboutScreen(onBack = { navController.popBackStack() })
                         }
-                        // 🔹 Artist detail route
                         composable("artist/{artistName}") { backStackEntry ->
                             val artistName = backStackEntry.arguments?.getString("artistName") ?: ""
                             val artistSongs = songs.filter { it.artist == artistName }
                             SongListScreen(
                                 songs = artistSongs,
-                                onSongSelected = { /* TODO: navigate to player */ }
+                                onSongSelected = { song ->
+                                    val mediaItems = artistSongs.map { it.toMediaItem() }
+                                    val startIndex = artistSongs.indexOf(song).coerceAtLeast(0)
+                                    controller?.apply {
+                                        setMediaItems(mediaItems, startIndex, 0L)
+                                        prepare()
+                                        play()
+                                    }
+                                }
                             )
                         }
-                        // 🔹 Playlist detail route (placeholder)
                         composable("playlist/{playlistName}") { backStackEntry ->
-                            val playlistName = backStackEntry.arguments?.getString("playlistName") ?: ""
-                            // TODO: load playlist songs
+                            val playlistName =
+                                backStackEntry.arguments?.getString("playlistName") ?: ""
+                            val playlistSongs = emptyList<Song>() // placeholder
                             SongListScreen(
-                                songs = emptyList(), // replace with playlist songs
-                                onSongSelected = { /* TODO: navigate to player */ }
+                                songs = playlistSongs,
+                                onSongSelected = { song ->
+                                    val mediaItems = playlistSongs.map { it.toMediaItem() }
+                                    val startIndex = playlistSongs.indexOf(song).coerceAtLeast(0)
+                                    controller?.apply {
+                                        setMediaItems(mediaItems, startIndex, 0L)
+                                        prepare()
+                                        play()
+                                    }
+                                }
                             )
                         }
                     }
                 }
             }
         }
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        controller?.release()
+        fun onDestroy() {
+            super.onDestroy()
+            controller?.release()
+        }
     }
 }

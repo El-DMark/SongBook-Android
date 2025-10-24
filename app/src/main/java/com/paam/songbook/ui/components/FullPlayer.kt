@@ -1,10 +1,15 @@
 package com.paam.songbook.ui.components
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -13,8 +18,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -22,7 +31,6 @@ import coil.compose.SubcomposeAsyncImage
 import com.paam.songbook.model.Song
 import com.valentinilk.shimmer.shimmer
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun FullPlayer(
     currentSong: Song?,
@@ -40,70 +48,90 @@ fun FullPlayer(
     var sliderPosition by remember { mutableStateOf(0f) }
     var isUserSeeking by remember { mutableStateOf(false) }
     var previewTime by remember { mutableStateOf<Long?>(null) }
-    val density = LocalDensity.current
+    var showLyrics by remember { mutableStateOf(false) }
 
-    // Keep slider in sync with playback unless user is dragging
+    val density = LocalDensity.current
+    val transition = updateTransition(currentSong.title, label = "SongChange")
+
+    val albumSize by transition.animateDp(
+        transitionSpec = { tween(500) },
+        label = "AlbumSize"
+    ) { if (it.isNotEmpty()) 300.dp else 0.dp }
+
+    val albumAlpha by transition.animateFloat(
+        transitionSpec = { tween(500) },
+        label = "AlbumAlpha"
+    ) { if (it.isNotEmpty()) 1f else 0f }
+
     LaunchedEffect(position, duration, isUserSeeking) {
         if (!isUserSeeking && duration > 0) {
             sliderPosition = position / duration.toFloat()
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Blurred background with fallback + shimmer
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectVerticalDragGestures { _, dragAmount ->
+                    if (dragAmount > 20) onCollapse()
+                }
+            }
+    ) {
+        // Blurred background
         SubcomposeAsyncImage(
             model = currentSong.albumArt,
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(40.dp),
+            modifier = Modifier.fillMaxSize().blur(40.dp),
             contentScale = ContentScale.Crop,
             alpha = 0.5f,
-            loading = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .shimmer()
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                )
-            },
+            loading = { Box(Modifier.fillMaxSize().shimmer().background(MaterialTheme.colorScheme.surfaceVariant)) },
             error = {
                 Icon(
                     imageVector = Icons.Default.MusicNote,
                     contentDescription = "Fallback",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(64.dp),
+                    modifier = Modifier.fillMaxSize().padding(64.dp),
                     tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                 )
             }
         )
 
-        Column(
+        // Gradient overlay
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
+                        startY = 0f,
+                        endY = 1000f
+                    )
+                )
+        )
+
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Collapse button
             IconButton(onClick = onCollapse, modifier = Modifier.align(Alignment.Start)) {
                 Icon(Icons.Default.ExpandMore, contentDescription = "Collapse")
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // Album art with shimmer + fallback
+            // Animated album art
             SubcomposeAsyncImage(
                 model = currentSong.albumArt,
                 contentDescription = currentSong.title,
                 modifier = Modifier
-                    .size(300.dp)
+                    .size(albumSize)
+                    .alpha(albumAlpha)
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
                 loading = {
                     Box(
                         modifier = Modifier
-                            .size(300.dp)
+                            .size(albumSize)
                             .clip(RoundedCornerShape(12.dp))
                             .shimmer()
                             .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -121,37 +149,18 @@ fun FullPlayer(
 
             Spacer(Modifier.height(24.dp))
 
-            // Title + artist
             Text(currentSong.title, style = MaterialTheme.typography.titleLarge)
-            Text(
-                currentSong.artist,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(currentSong.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(Modifier.height(24.dp))
 
             // Slider with preview bubble
-            // Progress bar with preview bubble
-            // State only for user interaction
-            var sliderPosition by remember { mutableStateOf(0f) }
-            var isUserSeeking by remember { mutableStateOf(false) }
-            var previewTime by remember { mutableStateOf<Long?>(null) }
-
             val playbackFraction = if (duration > 0) position / duration.toFloat() else 0f
-
-// The value shown on the slider: playback when not seeking, user drag when seeking
             val sliderValue = if (isUserSeeking) sliderPosition else playbackFraction
-
-// Animate changes so skips/jumps are smooth
-            val animatedSliderValue by animateFloatAsState(
-                targetValue = sliderValue,
-                animationSpec = tween(durationMillis = 300), // adjust speed if needed
-                label = "SliderAnim"
-            )
+            val animatedSliderValue by animateFloatAsState(sliderValue, tween(300), label = "SliderAnim")
 
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val maxWidthPx = with(density) { this@BoxWithConstraints.maxWidth.toPx() }
+                val maxWidthPx = with(density) { maxWidth.toPx() }
 
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Crossfade(targetState = previewTime, label = "PreviewBubble") { time ->
@@ -159,17 +168,9 @@ fun FullPlayer(
                             val offsetPercent = animatedSliderValue.coerceIn(0f, 1f)
                             val rawOffset = offsetPercent * (maxWidthPx - 32)
                             val offsetDp = with(density) { rawOffset.toDp() }
-                            val clampedOffset = offsetDp.coerceIn(
-                                0.dp,
-                                this@BoxWithConstraints.maxWidth - 40.dp
-                            )
+                            val clampedOffset = offsetDp.coerceIn(0.dp, this@BoxWithConstraints.maxWidth - 40.dp)
 
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
-                            ) {
-                                // Vertical scrubbing line
+                            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
@@ -178,8 +179,6 @@ fun FullPlayer(
                                         .height(24.dp)
                                         .background(MaterialTheme.colorScheme.primary)
                                 )
-
-                                // Floating bubble
                                 Text(
                                     text = formatTime(time),
                                     style = MaterialTheme.typography.bodySmall,
@@ -187,10 +186,7 @@ fun FullPlayer(
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
                                         .offset(x = clampedOffset - 20.dp, y = (-28).dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            shape = RoundedCornerShape(6.dp)
-                                        )
+                                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
@@ -199,14 +195,13 @@ fun FullPlayer(
 
                     Slider(
                         value = animatedSliderValue,
-                        onValueChange = { newValue ->
-                            sliderPosition = newValue
+                        onValueChange = {
+                            sliderPosition = it
                             isUserSeeking = true
-                            previewTime = (newValue * duration).toLong()
+                            previewTime = (it * duration).toLong()
                         },
                         onValueChangeFinished = {
-                            val seekPos = (sliderPosition * duration).toLong()
-                            onSeek(seekPos)
+                            onSeek((sliderPosition * duration).toLong())
                             isUserSeeking = false
                             previewTime = null
                         },
@@ -215,22 +210,16 @@ fun FullPlayer(
                 }
             }
 
-
-
             Spacer(Modifier.height(8.dp))
 
-            // Elapsed / total time
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(formatTime(position), style = MaterialTheme.typography.bodySmall)
                 Text(formatTime(duration), style = MaterialTheme.typography.bodySmall)
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // Playback controls
+            // Playback controls with buffering indicator
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -239,20 +228,40 @@ fun FullPlayer(
                 IconButton(onClick = onPrevious) {
                     Icon(Icons.Default.SkipPrevious, contentDescription = "Previous")
                 }
-                IconButton(onClick = onPlayPause, modifier = Modifier.size(72.dp)) {
-                    Icon(
-                        if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = "Play/Pause",
-                        modifier = Modifier.size(48.dp)
-                    )
+                Box(modifier = Modifier.size(72.dp)) {
+                    IconButton(onClick = onPlayPause, modifier = Modifier.size(72.dp)) {
+                        Icon(
+                            if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = "Play/Pause",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                    // Optional: add buffering indicator here if needed
                 }
                 IconButton(onClick = onNext) {
                     Icon(Icons.Default.SkipNext, contentDescription = "Next")
                 }
             }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Optional lyrics toggle
+            if (!currentSong.lyrics.isNullOrBlank()) {
+                TextButton(onClick = { showLyrics = !showLyrics }) {
+                    Text(if (showLyrics) "Hide Lyrics" else "Show Lyrics")
+                }
+                AnimatedVisibility(showLyrics) {
+                    Text(
+                        text = currentSong.lyrics ?: "",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.fillMaxWidth().padding(8.dp)
+                    )
+                }
+            }
         }
     }
 }
+
 
 private fun formatTime(ms: Long): String {
     val totalSeconds = ms / 1000

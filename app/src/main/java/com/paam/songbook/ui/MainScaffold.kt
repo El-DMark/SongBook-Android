@@ -10,17 +10,11 @@ import com.paam.songbook.model.toMediaItem
 import com.paam.songbook.ui.main.MainScreen
 
 @Composable
-fun MainScaffold(controller: MediaController, navController: NavController) {
-    val context = LocalContext.current
-    var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
-
-    // Load songs once
-    LaunchedEffect(Unit) {
-        val jsonUrl =
-            "https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C"
-        songs = SongRepository.loadSongs(context, jsonUrl)
-    }
-
+fun MainScaffold(
+    controller: MediaController,
+    navController: NavController,
+    songs: List<Song>
+) {
     PlayerHost(
         controller = controller,
         songs = songs
@@ -32,3 +26,4 @@ fun MainScaffold(controller: MediaController, navController: NavController) {
         )
     }
 }
+

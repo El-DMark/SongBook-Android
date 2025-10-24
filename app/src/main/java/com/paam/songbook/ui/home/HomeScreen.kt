@@ -33,7 +33,7 @@ fun HomeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(8.dp)
+            .padding(4.dp)
     ) {
         // 🔹 Carousel
         NewlyAddedCarousel(
@@ -46,8 +46,8 @@ fun HomeScreen(
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = pagerState.currentPage == index,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    text = { Text(title) }
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } }//,
+                  //  text = { Text(title) }
                 )
             }
         }

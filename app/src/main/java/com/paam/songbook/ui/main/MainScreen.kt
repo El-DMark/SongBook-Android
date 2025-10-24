@@ -23,13 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
+import com.paam.songbook.model.toMediaItem
 import com.paam.songbook.ui.artists.ArtistListScreen
 import com.paam.songbook.ui.home.HomeScreen
 import com.paam.songbook.ui.playlists.PlaylistScreen
 import com.paam.songbook.ui.songs.SongListScreen
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
+    ExperimentalAnimationApi::class
+)
 @Composable
 fun MainScreen(
     songs: List<Song>,
@@ -64,11 +69,13 @@ fun MainScreen(
                                     value = query,
                                     onValueChange = { query = it },
                                     placeholder = { Text("Search songs...") },
+
                                     singleLine = true,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .focusRequester(focusRequester),
                                     shape = RoundedCornerShape(35.dp),
+                                    textStyle = MaterialTheme.typography.bodyMedium,
                                     colors = TextFieldDefaults.colors(
                                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -86,7 +93,7 @@ fun MainScreen(
                                     }
                                 )
                             } else {
-                                Text("Songs of Bride") // 🔹 show current tab title
+                                Text("Songs of Bride")
                             }
                         }
                     },
@@ -104,7 +111,6 @@ fun MainScreen(
                         }
                     }
                 )
-                // 🔹 Tabs synced with pager
                 ScrollableTabRow(
                     selectedTabIndex = pagerState.currentPage,
                     edgePadding = 16.dp,
@@ -132,37 +138,44 @@ fun MainScreen(
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
             ) { page ->
                 when (page) {
-                    0 -> Box(Modifier.fillMaxSize()) {
-                        HomeScreen(
-                            songs = songs,
-                            onSongSelected = { /* TODO */ },
-                            navController = navController,
-                            controller = controller,
-                            query = query
-                        )
-                    }
-                    1 -> Box(Modifier.fillMaxSize()) {
+                    0 -> HomeScreen(
+                        songs = songs,
+                        onSongSelected = { song ->
+                            val mediaItems = songs.map { it.toMediaItem() }
+                            val startIndex = songs.indexOf(song).coerceAtLeast(0)
+                            controller.setMediaItems(mediaItems, startIndex, 0L)
+                            controller.prepare()
+                            controller.play()
+                        },
+                        navController = navController,
+                        controller = controller,
+                        query = query
+                    )
+                    1 -> {
+                        val filteredSongs = songs.filter { it.matchesQuery(query) }
                         SongListScreen(
-                            songs = songs.filter { it.matchesQuery(query) },
-                            onSongSelected = { /* TODO */ }
-                        )
-                    }
-                    2 -> Box(Modifier.fillMaxSize()) {
-                        ArtistListScreen(
-                            songs = songs,
-                            onArtistSelected = { artist ->
-                                navController.navigate("artist/$artist")
+                            songs = filteredSongs,
+                            onSongSelected = { song ->
+                                val mediaItems = filteredSongs.map { it.toMediaItem() }
+                                val startIndex = filteredSongs.indexOf(song).coerceAtLeast(0)
+                                controller.setMediaItems(mediaItems, startIndex, 0L)
+                                controller.prepare()
+                                controller.play()
                             }
                         )
                     }
-                    3 -> Box(Modifier.fillMaxSize()) {
-                        PlaylistScreen(
-                            playlists = listOf("Favorites", "Wedding Mix"),
-                            onPlaylistSelected = { playlist ->
-                                navController.navigate("playlist/$playlist")
-                            }
-                        )
-                    }
+                    2 -> ArtistListScreen(
+                        songs = songs,
+                        onArtistSelected = { artist ->
+                            navController.navigate("artist/$artist")
+                        }
+                    )
+                    3 -> PlaylistScreen(
+                        playlists = listOf("Favorites", "Wedding Mix"),
+                        onPlaylistSelected = { playlist ->
+                            navController.navigate("playlist/$playlist")
+                        }
+                    )
                 }
             }
         }
