@@ -31,14 +31,14 @@ fun NewlyAddedCarousel(
     // Sort songs by parsed date
     val sortedSongs = songs.sortedByDescending { parseDate(it.timestamp) }
 
-    Column(modifier = modifier.padding(vertical = 12.dp)) {
+    Column(modifier = modifier.padding(vertical = 0.dp)) {
         Text(
             text = "Newly Added",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(0.dp))
 
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -55,7 +55,7 @@ fun NewlyAddedCarousel(
                     SongCard(
                         song = song,
                         onClick = { onSongSelected(song) },
-                         modifier = Modifier.width(110.dp)
+                         modifier = Modifier.width(80.dp)
                     )
                 }
             }

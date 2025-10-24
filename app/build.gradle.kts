@@ -72,6 +72,8 @@ dependencies {
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.palette.ktx)
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.ui)
     kapt(libs.room.compiler)
 
     // Media3 (✅ use only one consistent version)
@@ -106,4 +108,5 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.valentinilk.shimmer:compose-shimmer:1.0.3")
     implementation("com.jakewharton.threetenabp:threetenabp:1.4.6")
+    implementation("androidx.compose.material3:material3:1.2.1")
 }

@@ -1,6 +1,7 @@
 package com.paam.songbook.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -62,16 +64,19 @@ fun SongCard(
 
         Text(
             text = song.title,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            overflow = TextOverflow.Visible, // important for marquee
+            modifier = Modifier.basicMarquee()
+
         )
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        Text(
-            text = song.artist,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1
-        )
+//        Text(
+//            text = song.artist,
+//            style = MaterialTheme.typography.bodySmall,
+//            maxLines = 1
+//        )
     }
 }

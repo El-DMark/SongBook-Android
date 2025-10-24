@@ -1,13 +1,28 @@
 package com.paam.songbook.ui.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -33,99 +48,110 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                Text(
-                    "Options",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text("Settings") },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("settings")
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    AnimatedContent(
+                        targetState = isSearching,
+                        transitionSpec = {
+                            slideInHorizontally { fullWidth -> fullWidth } + fadeIn() togetherWith
+                                    slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
+                        },
+                        label = "SearchTransition"
+                    ) { searching ->
+                        if (searching) {
+                            val focusRequester = remember { FocusRequester() }
+                            LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                TextField(
+                                    value = query,
+                                    onValueChange = { query = it },
+                                    placeholder = { Text("Search songs...") },
+                                    singleLine = true,
+                                    textStyle = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f) // 90% of app bar width
+                                        .focusRequester(focusRequester),
+                                    shape = RoundedCornerShape(35.dp), // pill corners
+                                    colors = TextFieldDefaults.colors(
+                                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        focusedIndicatorColor = Color.Transparent,
+                                        unfocusedIndicatorColor = Color.Transparent,
+                                        disabledIndicatorColor = Color.Transparent
+                                    ),
+                                    trailingIcon = {
+                                        IconButton(onClick = {
+                                            if (query.isNotEmpty()) query = "" else isSearching = false
+                                        }) {
+                                            Icon(Icons.Default.Close, contentDescription = "Close")
+                                        }
+                                    }
+                                )
+                            }
+                        } else {
+                            Text("Songs of Bride")
+                        }
                     }
-                )
-                NavigationDrawerItem(
-                    label = { Text("About") },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate("about")
-                    }
-                )
-            }
-        }
-    ) {
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("Songs Of Bride") },
-                    actions = {
-                        IconButton(onClick = { isSearching = !isSearching }) {
+                },
+                actions = {
+                    if (!isSearching) {
+                        IconButton(onClick = { isSearching = true }) {
                             Icon(Icons.Default.Search, contentDescription = "Search")
                         }
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Apps, contentDescription = "Options")
-                        }
                     }
-                )
-            },
-            modifier = modifier
-        ) { padding ->
-            // ✅ Only apply top/start/end padding, skip bottom
-            Box(
-                modifier = Modifier
-                    .padding(
-                        top = padding.calculateTopPadding(),
-                        start = padding.calculateStartPadding(LayoutDirection.Ltr),
-                        end = padding.calculateEndPadding(LayoutDirection.Ltr)
-                    )
-                    .fillMaxSize()
-            ) {
-                Column(Modifier.fillMaxSize()) {
-                    AnimatedVisibility(visible = isSearching) {
-                        SearchBar(
-                            query = query,
-                            onQueryChange = { query = it },
-                            onSearch = {},
-                            active = false,
-                            onActiveChange = {},
-                            placeholder = { Text("Search songs...") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                        ) {}
+                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                        Icon(Icons.Default.Apps, contentDescription = "Options")
                     }
-
-                    NewlyAddedCarousel(
-                        songs = songs,
-                        onSongSelected = onSongSelected
-                    )
-
-                    LanguageFilterRow(
-                        languages = listOf("Hindi", "English", "Punjabi"),
-                        selectedLanguage = selectedLanguage,
-                        onLanguageSelected = { selectedLanguage = it }
-                    )
-
-                    val filteredSongs = songs.filter {
-                        (selectedLanguage == null || it.Language == selectedLanguage) &&
-                                (query.isBlank() || it.title.contains(query, true) || it.artist.contains(query, true))
-                    }
-
-                    SongList(
-                        songs = filteredSongs,
-                        onSongSelected = onSongSelected,
-                        isLoading = songs.isEmpty(),
-                        modifier = Modifier.fillMaxSize()
-                    )
                 }
+            )
+        },
+        modifier = modifier
+    ) {  padding ->
+        Box(
+            modifier = Modifier
+                .padding(
+                    top = padding.calculateTopPadding(),
+                    start = padding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = padding.calculateEndPadding(LayoutDirection.Ltr)
+                )
+                .fillMaxSize()
+        ) {
+            Column(Modifier.fillMaxSize()) {
+                NewlyAddedCarousel(
+                    songs = songs,
+                    onSongSelected = onSongSelected
+                )
+
+                LanguageFilterRow(
+                    languages = listOf("Hindi", "English"),
+                    selectedLanguage = selectedLanguage,
+                    onLanguageSelected = { selectedLanguage = it }
+                )
+
+                val filteredSongs = songs.filter {
+                    (selectedLanguage == null || it.Language == selectedLanguage) &&
+
+
+                            (query.isBlank() || it.title.contains(query, true) || it.artist.contains(query, true))
+                }
+
+
+                SongList(
+                    songs = filteredSongs,
+                    onSongSelected = onSongSelected,
+                    isLoading = songs.isEmpty(),
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }
+
 }
