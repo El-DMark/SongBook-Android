@@ -18,7 +18,7 @@ fun HomeHost(
 ) {
     HomeScreen(
         songs = songs,
-        onSongSelected = onSongSelected,
+       // onSongSelected = onSongSelected,
         navController = navController,
         controller = controller,
         query = query,   // 🔹 pass it down

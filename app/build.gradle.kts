@@ -2,17 +2,19 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.compose) // Kotlin 2.0+ Compose compiler
     alias(libs.plugins.hilt)
+    kotlin("plugin.serialization") version "2.0.20"
 }
 
 android {
     namespace = "com.paam.songbook"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.paam.songbook"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -38,10 +40,7 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
-    }
-
+    // 👇 Removed composeOptions, handled by plugin
 }
 
 dependencies {
@@ -50,9 +49,9 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.navigation.compose)
-    implementation("androidx.activity:activity-compose:1.9.2")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.6.8")
-    implementation("androidx.compose.material:material-icons-extended:1.6.8")
+    implementation(libs.androidx.activity.compose)
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.0")
 
     // Lifecycle + Coroutines
     implementation(libs.lifecycle.runtime)
@@ -67,48 +66,40 @@ dependencies {
     // Database
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.runtime)
-    implementation(libs.androidx.compose.animation.core)
-    implementation(libs.androidx.compose.material)
     implementation(libs.androidx.palette.ktx)
-    implementation(libs.androidx.compose.animation)
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.animation.core)
     kapt(libs.room.compiler)
 
-    // Media3 (✅ use only one consistent version)
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("androidx.media3:media3-session:1.4.1")
-    implementation("androidx.media3:media3-ui:1.4.1")
+    // Media3
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.session)
+    implementation(libs.media3.ui)
 
-    // Legacy media support (if needed for MediaSessionCompat.Token)
+    // Legacy media support
     implementation("androidx.media:media:1.6.0")
 
     // Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
-    // Coil for images
+    // Coil
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     // AndroidX Core
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation(libs.androidx.core.ktx)
 
     // Coroutines Guava interop
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
+
+    // JSON serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+    // Extra UI libs
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.0.3")
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.6")
 
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("androidx.media3:media3-session:1.4.1")
-// For coroutines + Guava interop
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("com.valentinilk.shimmer:compose-shimmer:1.0.3")
-    implementation("com.jakewharton.threetenabp:threetenabp:1.4.6")
-    implementation("androidx.compose.material3:material3:1.2.1")
 }

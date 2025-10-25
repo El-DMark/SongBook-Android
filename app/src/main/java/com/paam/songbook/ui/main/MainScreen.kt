@@ -140,13 +140,13 @@ fun MainScreen(
                 when (page) {
                     0 -> HomeScreen(
                         songs = songs,
-                        onSongSelected = { song ->
-                            val mediaItems = songs.map { it.toMediaItem() }
-                            val startIndex = songs.indexOf(song).coerceAtLeast(0)
-                            controller.setMediaItems(mediaItems, startIndex, 0L)
-                            controller.prepare()
-                            controller.play()
-                        },
+//                       // onSongSelected = { song ->
+//                            val mediaItems = songs.map { it.toMediaItem() }
+//                            val startIndex = songs.indexOf(song).coerceAtLeast(0)
+//                            controller.setMediaItems(mediaItems, startIndex, 0L)
+//                            controller.prepare()
+//                            controller.play()
+//                        },
                         navController = navController,
                         controller = controller,
                         query = query

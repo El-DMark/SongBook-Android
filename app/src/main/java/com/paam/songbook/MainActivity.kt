@@ -19,6 +19,7 @@ import com.paam.songbook.model.SongRepository
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import androidx.navigation.compose.*
+import com.paam.songbook.model.LyricsRepository
 import com.paam.songbook.model.Song
 import com.paam.songbook.model.toMediaItem
 import com.paam.songbook.ui.MainScaffold
@@ -40,11 +41,17 @@ class MainActivity : ComponentActivity() {
             val controllerFuture =
                 MediaController.Builder(this@MainActivity, sessionToken).buildAsync()
             controller = controllerFuture.await()
+//https://raw.githubusercontent.com/El-DMark/songbook/refs/heads/main/streamJson_dev?token=GHSAT0AAAAAADM6ASCFVPPDSBGGWZVHGQQG2H3QD3Q
 
+            //https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C
             // 🔹 Load songs once here
             val jsonUrl =
-                "https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C"
+                "https://el-dmark.github.io/songbook/stream_dev.json"
             val songs = SongRepository.loadSongs(this@MainActivity, jsonUrl)
+
+            val lyricsUrl = "https://el-dmark.github.io/songbook/lyricsStream_dev.json"
+            val lyrics = LyricsRepository.loadLyrics(this@MainActivity, lyricsUrl)
+
 
             setContent {
                 Surface(color = MaterialTheme.colorScheme.background) {
@@ -56,7 +63,9 @@ class MainActivity : ComponentActivity() {
                             MainScaffold(
                                 controller = controller!!,
                                 navController = navController,
-                                songs = songs
+                                songs = songs,
+                                lyrics = lyrics
+
                             )
                         }
                         composable("settings") {

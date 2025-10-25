@@ -10,7 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 
 data class Song(
-    val songID: Int,
+    val songID: String,
     val title: String,
     val artist: String,
     val url: String,

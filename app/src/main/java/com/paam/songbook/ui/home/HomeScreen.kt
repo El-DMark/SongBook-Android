@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
+import com.paam.songbook.media.toMediaItem
 import com.paam.songbook.ui.components.*
 import kotlinx.coroutines.launch
 
@@ -19,10 +20,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     songs: List<Song>,
-    onSongSelected: (Song) -> Unit,
     navController: NavController,
     controller: MediaController,
-    query: String, // 🔹 passed down from MainScreen
+    query: String,
     modifier: Modifier = Modifier
 ) {
     var selectedLanguage by remember { mutableStateOf<String?>(null) }
@@ -38,7 +38,15 @@ fun HomeScreen(
         // 🔹 Carousel
         NewlyAddedCarousel(
             songs = songs,
-            onSongSelected = onSongSelected
+            onSongSelected = { selectedSong ->
+                val mediaItems = songs.map { it.toMediaItem() }
+                val startIndex = songs.indexOfFirst { it.songID == selectedSong.songID }
+                if (startIndex != -1) {
+                    controller.setMediaItems(mediaItems, startIndex, 0L)
+                    controller.prepare()
+                    controller.play()
+                }
+            }
         )
 
         // 🔹 Filter tabs (Language, Artist, etc.)
@@ -46,8 +54,7 @@ fun HomeScreen(
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = pagerState.currentPage == index,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } }//,
-                  //  text = { Text(title) }
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } }
                 )
             }
         }
@@ -70,15 +77,21 @@ fun HomeScreen(
         // 🔹 Apply filters + search
         val filteredSongs = songs.filter {
             (selectedLanguage == null || it.Language == selectedLanguage) &&
-                    (query.isBlank() ||
-                            it.title.contains(query, ignoreCase = true) ||
-                            it.artist.contains(query, ignoreCase = true))
+                    (query.isBlank() || it.title.contains(query, ignoreCase = true) || it.artist.contains(query, ignoreCase = true))
         }
 
         // 🔹 Song list
         SongList(
             songs = filteredSongs,
-            onSongSelected = onSongSelected,
+            onSongSelected = { selectedSong ->
+                val mediaItems = songs.map { it.toMediaItem() }
+                val startIndex = songs.indexOfFirst { it.songID == selectedSong.songID }
+                if (startIndex != -1) {
+                    controller.setMediaItems(mediaItems, startIndex, 0L)
+                    controller.prepare()
+                    controller.play()
+                }
+            },
             isLoading = songs.isEmpty(),
             modifier = Modifier.fillMaxSize()
         )

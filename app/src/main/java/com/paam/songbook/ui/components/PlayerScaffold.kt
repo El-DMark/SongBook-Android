@@ -1,5 +1,6 @@
 package com.paam.songbook.ui.components
 
+import Lyrics
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ fun PlayerScaffold(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onSeek: (Long) -> Unit,
+    lyrics: List<Lyrics>,
     content: @Composable () -> Unit
 ) {
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -70,7 +72,9 @@ fun PlayerScaffold(
                                 onPlayPause = onPlayPause,
                                 onNext = onNext,
                                 onPrevious = onPrevious,
-                                onSeek = onSeek
+                                onSeek = onSeek,
+                                lyrics=lyrics
+
                             )
                         }
                     }

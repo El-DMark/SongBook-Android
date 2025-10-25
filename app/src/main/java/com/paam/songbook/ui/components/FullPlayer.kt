@@ -1,7 +1,7 @@
 package com.paam.songbook.ui.components
 
+import Lyrics
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
@@ -13,6 +13,7 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,9 +29,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
+//import com.paam.songbook.model.Lyrics.LyricsRepository
+import com.paam.songbook.model.LyricsRepository
 import com.paam.songbook.model.Song
+//import com.paam.songbook.model.LyricsRepository
 import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun FullPlayer(
     currentSong: Song?,
@@ -41,7 +47,8 @@ fun FullPlayer(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
-    onSeek: (Long) -> Unit
+    onSeek: (Long) -> Unit,
+    lyrics: List<Lyrics> // 🔹 passed from MainScaffold
 ) {
     if (currentSong == null) return
 
@@ -49,7 +56,9 @@ fun FullPlayer(
     var isUserSeeking by remember { mutableStateOf(false) }
     var previewTime by remember { mutableStateOf<Long?>(null) }
     var showLyrics by remember { mutableStateOf(false) }
+    var fetchedLyrics by remember { mutableStateOf<String?>(null) }
 
+    val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
     val transition = updateTransition(currentSong.title, label = "SongChange")
 
@@ -69,6 +78,10 @@ fun FullPlayer(
         }
     }
 
+    val matchedLyrics = remember(currentSong?.songID, lyrics) {
+        lyrics.find { it.id.toString() == currentSong?.songID }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -78,97 +91,112 @@ fun FullPlayer(
                 }
             }
     ) {
-        // Blurred background
-        SubcomposeAsyncImage(
-            model = currentSong.albumArt,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize().blur(40.dp),
-            contentScale = ContentScale.Crop,
-            alpha = 0.5f,
-            loading = { Box(Modifier.fillMaxSize().shimmer().background(MaterialTheme.colorScheme.surfaceVariant)) },
-            error = {
-                Icon(
-                    imageVector = Icons.Default.MusicNote,
-                    contentDescription = "Fallback",
-                    modifier = Modifier.fillMaxSize().padding(64.dp),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                )
-            }
-        )
-
-        // Gradient overlay
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
-                        startY = 0f,
-                        endY = 1000f
-                    )
-                )
-        )
-
         Column(
             modifier = Modifier.fillMaxSize().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = onCollapse, modifier = Modifier.align(Alignment.Start)) {
-                Icon(Icons.Default.ExpandMore, contentDescription = "Collapse")
+            // 🔹 Top bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 18.dp, vertical = 4.dp)
+            ) {
+                IconButton(
+                    onClick = onCollapse,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .align(Alignment.TopStart)
+                ) {
+                    Icon(Icons.Default.ExpandMore, contentDescription = "Collapse")
+                }
+
+                if (matchedLyrics != null) {
+                    IconButton(
+                        onClick = {
+                            showLyrics = !showLyrics
+                            if (showLyrics && fetchedLyrics == null) {
+                                coroutineScope.launch {
+                                    fetchedLyrics = buildString {
+                                        matchedLyrics.verses.forEach { appendLine(it).appendLine() }
+                                        appendLine("Chorus:\n${matchedLyrics.chorus}")
+                                    }
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .align(Alignment.TopEnd)
+                    ) {
+                        Icon(
+                            imageVector = if (showLyrics) Icons.Default.Close else Icons.AutoMirrored.Filled.MenuBook,
+                            contentDescription = if (showLyrics) "Hide Lyrics" else "Show Lyrics"
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // Animated album art
-            SubcomposeAsyncImage(
-                model = currentSong.albumArt,
-                contentDescription = currentSong.title,
-                modifier = Modifier
-                    .size(albumSize)
-                    .alpha(albumAlpha)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop,
-                loading = {
-                    Box(
-                        modifier = Modifier
-                            .size(albumSize)
-                            .clip(RoundedCornerShape(12.dp))
-                            .shimmer()
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    )
-                },
-                error = {
-                    Icon(
-                        imageVector = Icons.Default.MusicNote,
-                        contentDescription = "Fallback",
-                        modifier = Modifier.size(96.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            )
+            if (showLyrics && fetchedLyrics != null) {
+                Text(
+                    text = fetchedLyrics ?: "Loading lyrics...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+            } else {
+                SubcomposeAsyncImage(
+                    model = currentSong.albumArt,
+                    contentDescription = currentSong.title,
+                    modifier = Modifier
+                        .size(albumSize)
+                        .alpha(albumAlpha)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .size(albumSize)
+                                .clip(RoundedCornerShape(12.dp))
+                                .shimmer()
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    },
+                    error = {
+                        Icon(
+                            imageVector = Icons.Default.MusicNote,
+                            contentDescription = "Fallback",
+                            modifier = Modifier.size(96.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                )
+            }
 
             Spacer(Modifier.height(24.dp))
+
 
             Text(currentSong.title, style = MaterialTheme.typography.titleLarge)
             Text(currentSong.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(Modifier.height(24.dp))
 
-            // Slider with preview bubble
             val playbackFraction = if (duration > 0) position / duration.toFloat() else 0f
             val sliderValue = if (isUserSeeking) sliderPosition else playbackFraction
             val animatedSliderValue by animateFloatAsState(sliderValue, tween(300), label = "SliderAnim")
 
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                 val maxWidthPx = with(density) { maxWidth.toPx() }
+                val maxWidthDp = maxWidth
 
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    Crossfade(targetState = previewTime, label = "PreviewBubble") { time ->
+                    Crossfade(targetState = previewTime, label = "PreviewBubble") { time: Long? ->
                         if (time != null && duration > 0) {
                             val offsetPercent = animatedSliderValue.coerceIn(0f, 1f)
                             val rawOffset = offsetPercent * (maxWidthPx - 32)
                             val offsetDp = with(density) { rawOffset.toDp() }
-                            val clampedOffset = offsetDp.coerceIn(0.dp, this@BoxWithConstraints.maxWidth - 40.dp)
+                            val clampedOffset = offsetDp.coerceIn(0.dp, maxWidthDp - 40.dp)
 
                             Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                                 Box(
@@ -193,6 +221,7 @@ fun FullPlayer(
                         }
                     }
 
+
                     Slider(
                         value = animatedSliderValue,
                         onValueChange = {
@@ -210,6 +239,7 @@ fun FullPlayer(
                 }
             }
 
+
             Spacer(Modifier.height(8.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -219,7 +249,6 @@ fun FullPlayer(
 
             Spacer(Modifier.height(24.dp))
 
-            // Playback controls with buffering indicator
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -236,7 +265,6 @@ fun FullPlayer(
                             modifier = Modifier.size(48.dp)
                         )
                     }
-                    // Optional: add buffering indicator here if needed
                 }
                 IconButton(onClick = onNext) {
                     Icon(Icons.Default.SkipNext, contentDescription = "Next")
@@ -244,24 +272,9 @@ fun FullPlayer(
             }
 
             Spacer(Modifier.height(16.dp))
-
-            // Optional lyrics toggle
-            if (!currentSong.lyrics.isNullOrBlank()) {
-                TextButton(onClick = { showLyrics = !showLyrics }) {
-                    Text(if (showLyrics) "Hide Lyrics" else "Show Lyrics")
-                }
-                AnimatedVisibility(showLyrics) {
-                    Text(
-                        text = currentSong.lyrics ?: "",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.fillMaxWidth().padding(8.dp)
-                    )
-                }
-            }
         }
     }
 }
-
 
 private fun formatTime(ms: Long): String {
     val totalSeconds = ms / 1000

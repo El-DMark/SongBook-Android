@@ -1,5 +1,6 @@
 package com.paam.songbook.ui
 
+import Lyrics
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -21,7 +22,9 @@ import kotlinx.coroutines.delay
 fun PlayerHost(
     controller: MediaController,
     songs: List<Song>,
+    lyrics: List<Lyrics>,
     content: @Composable () -> Unit
+
 ) {
     var currentSong by remember { mutableStateOf<Song?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -34,11 +37,14 @@ fun PlayerHost(
             override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
                 currentSong = item?.toSong()
                 duration = controller.duration.coerceAtLeast(0L)
+
                 currentSong?.let {
                     val json = Gson().toJson(it)
                     Log.d("CurrentSongJSON", json)
-                }
 
+                    // 🔍 Log lyrics separately for clarity
+                    Log.d("LyricsDebug", "Lyrics: ${it.lyrics}")
+                }
             }
 
             override fun onIsPlayingChanged(isPlayingNow: Boolean) {
@@ -51,6 +57,12 @@ fun PlayerHost(
         currentSong = controller.currentMediaItem?.toSong()
         isPlaying = controller.isPlaying
         duration = controller.duration.coerceAtLeast(0L)
+
+        currentSong?.let {
+            val json = Gson().toJson(it)
+            Log.d("CurrentSongJSON", json)
+            Log.d("LyricsDebug", "Lyrics: ${it.lyrics}")
+        }
 
         onDispose { controller.removeListener(listener) }
     }
@@ -76,7 +88,8 @@ fun PlayerHost(
             },
             onNext = { controller.seekToNext() },
             onPrevious = { controller.seekToPrevious() },
-            onSeek = { seekPos -> controller.seekTo(seekPos) }
+            onSeek = { seekPos -> controller.seekTo(seekPos) },
+            lyrics = lyrics
         ) {
             Box(modifier = Modifier.padding(bottom = 0.dp)) {
                 content()

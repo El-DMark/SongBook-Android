@@ -1,5 +1,6 @@
 package com.paam.songbook.ui
 
+import Lyrics
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.session.MediaController
@@ -13,11 +14,15 @@ import com.paam.songbook.ui.main.MainScreen
 fun MainScaffold(
     controller: MediaController,
     navController: NavController,
-    songs: List<Song>
+    songs: List<Song>,
+    lyrics: List<Lyrics>
+
 ) {
     PlayerHost(
         controller = controller,
-        songs = songs
+        songs = songs,
+        lyrics = lyrics
+
     ) {
         MainScreen(
             songs = songs,
