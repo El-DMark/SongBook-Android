@@ -1,5 +1,6 @@
 package com.paam.songbook.ui.fullplayer
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,7 +21,8 @@ fun PlayerHeaderBar(
     onCollapse: () -> Unit,
     showLyrics: Boolean,
     matchedLyricsAvailable: Boolean,
-    onToggleLyrics: () -> Unit
+    onToggleLyrics: () -> Unit,
+    tint: Color // ✅ new
 ) {
     Box(
         modifier = Modifier
@@ -33,7 +35,7 @@ fun PlayerHeaderBar(
                 .size(40.dp)
                 .align(Alignment.TopStart)
         ) {
-            Icon(Icons.Default.ExpandMore, contentDescription = "Collapse")
+            Icon(Icons.Default.ExpandMore, contentDescription = "Collapse", tint = tint)
         }
 
         if (matchedLyricsAvailable) {
@@ -45,9 +47,12 @@ fun PlayerHeaderBar(
             ) {
                 Icon(
                     imageVector = if (showLyrics) Icons.Default.Close else Icons.AutoMirrored.Filled.MenuBook,
-                    contentDescription = if (showLyrics) "Hide Lyrics" else "Show Lyrics"
+                    contentDescription = if (showLyrics) "Hide Lyrics" else "Show Lyrics",
+                    tint = tint
                 )
             }
         }
     }
 }
+
+

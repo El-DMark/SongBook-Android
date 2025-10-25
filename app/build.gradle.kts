@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.paam.songbook"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.paam.songbook"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -67,6 +67,9 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.androidx.palette.ktx)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.animation)
     kapt(libs.room.compiler)
 
     // Media3
