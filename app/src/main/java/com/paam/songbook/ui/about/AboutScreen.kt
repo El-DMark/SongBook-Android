@@ -32,34 +32,35 @@ fun AboutScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text("Songs Of Bride", style = MaterialTheme.typography.headlineSmall)
-            Text("Version 1.0.0", style = MaterialTheme.typography.bodyMedium)
+            Text("App Version 1.0.0", style = MaterialTheme.typography.bodyMedium)
+            Text("Song Repo Version 1.0.0", style = MaterialTheme.typography.bodyMedium)
 
             Divider()
 
             Text(
-                "This app is built to provide a seamless music experience with secure streaming, " +
-                        "offline support, and a modern Material You design."
+                "This app is built to provide a seamless and Ad free listening of songs sang by Brothers and Sister in Christ, " +
+                        "This app is dedicated to Bride of Christ"
             )
 
             Divider()
 
             Text("Credits", style = MaterialTheme.typography.titleMedium)
-            Text("• Developed by Mark David\n• Powered by AndroidX Media3 & Jetpack Compose")
+            Text("• Developed by Mark David\n• Song repository curated by Varsha David")
 
-            Divider()
+ //           Divider()
 
-            Text("Acknowledgments", style = MaterialTheme.typography.titleMedium)
-            Text("Special thanks to the open-source community and contributors.")
+//            Text("Acknowledgments", style = MaterialTheme.typography.titleMedium)
+//            Text("Songs and their lyrics are not belong to me")
 
-            Divider()
-
-            Text("Legal", style = MaterialTheme.typography.titleMedium)
-            TextButton(onClick = { /* TODO: open Privacy Policy */ }) {
-                Text("Privacy Policy")
-            }
-            TextButton(onClick = { /* TODO: open Terms of Service */ }) {
-                Text("Terms of Service")
-            }
+//            Divider()
+//
+//            Text("Legal", style = MaterialTheme.typography.titleMedium)
+//            TextButton(onClick = { /* TODO: open Privacy Policy */ }) {
+//                Text("Privacy Policy")
+//            }
+//            TextButton(onClick = { /* TODO: open Terms of Service */ }) {
+//                Text("Terms of Service")
+//            }
         }
     }
 }

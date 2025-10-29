@@ -1,10 +1,6 @@
 package com.paam.songbook.ui.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,9 +10,8 @@ import androidx.navigation.NavController
 import com.paam.songbook.model.Song
 import com.paam.songbook.media.toMediaItem
 import com.paam.songbook.ui.components.*
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     songs: List<Song>,
@@ -26,9 +21,6 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     var selectedLanguage by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
-    val tabs = listOf("Language")
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
 
     Column(
         modifier = modifier
@@ -49,35 +41,19 @@ fun HomeScreen(
             }
         )
 
-        // 🔹 Filter tabs (Language, Artist, etc.)
-        TabRow(selectedTabIndex = pagerState.currentPage) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = pagerState.currentPage == index,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } }
-                )
-            }
-        }
-
-        // 🔹 Pager for filters
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth(),
-            flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
-        ) { page ->
-            when (page) {
-                0 -> LanguageFilterRow(
-                    languages = listOf("Hindi", "English"),
-                    selectedLanguage = selectedLanguage,
-                    onLanguageSelected = { selectedLanguage = it }
-                )
-            }
-        }
+        // 🔹 Language filter row (direct, no pager)
+        LanguageFilterRow(
+            languages = listOf("Hindi", "English"),
+            selectedLanguage = selectedLanguage,
+            onLanguageSelected = { selectedLanguage = it }
+        )
 
         // 🔹 Apply filters + search
         val filteredSongs = songs.filter {
             (selectedLanguage == null || it.Language == selectedLanguage) &&
-                    (query.isBlank() || it.title.contains(query, ignoreCase = true) || it.artist.contains(query, ignoreCase = true))
+                    (query.isBlank() ||
+                            it.title.contains(query, ignoreCase = true) ||
+                            it.artist.contains(query, ignoreCase = true))
         }
 
         // 🔹 Song list

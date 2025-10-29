@@ -171,7 +171,7 @@ fun MainScreen(
                         }
                     )
                     3 -> PlaylistScreen(
-                        playlists = listOf("Favorites", "Wedding Mix"),
+                        playlists = listOf("Favorites", "Cloud"),
                         onPlaylistSelected = { playlist ->
                             navController.navigate("playlist/$playlist")
                         }

@@ -148,8 +148,9 @@ fun FullPlayer(
                     if (showLyrics && fetchedLyrics == null && matchedLyrics != null) {
                         coroutineScope.launch {
                             fetchedLyrics = buildString {
-                                matchedLyrics.verses.forEach { appendLine(it).appendLine() }
                                 appendLine("Chorus:\n${matchedLyrics.chorus}")
+                                matchedLyrics.verses.forEach { appendLine(it).appendLine() }
+
                             }
                         }
                     }
