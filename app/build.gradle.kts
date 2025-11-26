@@ -70,6 +70,9 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.animation)
     kapt(libs.room.compiler)
 
     // Media3
@@ -105,4 +108,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation("androidx.compose.foundation:foundation:1.4.0")
 }

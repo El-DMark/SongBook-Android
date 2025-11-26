@@ -11,18 +11,16 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.paam.songbook.player.PlayerService
+import com.paam.songbook.model.SongRepository
+import com.paam.songbook.model.LyricsRepository
 import com.paam.songbook.ui.main.MainScreen
+import com.paam.songbook.ui.songdetail.SongDetailScreen
 import com.paam.songbook.ui.settings.SettingsScreen
 import com.paam.songbook.ui.about.AboutScreen
-import com.paam.songbook.ui.songs.SongListScreen
-import com.paam.songbook.model.SongRepository
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import androidx.navigation.compose.*
-import com.paam.songbook.model.LyricsRepository
-import com.paam.songbook.model.Song
-import com.paam.songbook.model.toMediaItem
-import com.paam.songbook.ui.MainScaffold
+import com.paam.songbook.ui.PlayerHost
 
 @UnstableApi
 class MainActivity : ComponentActivity() {
@@ -41,80 +39,56 @@ class MainActivity : ComponentActivity() {
             val controllerFuture =
                 MediaController.Builder(this@MainActivity, sessionToken).buildAsync()
             controller = controllerFuture.await()
-//https://raw.githubusercontent.com/El-DMark/songbook/refs/heads/main/streamJson_dev?token=GHSAT0AAAAAADM6ASCFVPPDSBGGWZVHGQQG2H3QD3Q
 
-            //https://drive.google.com/uc?export=download&id=14l-TYjjaUOL0oiLU5owowbkfMp1vxH_C
-            // 🔹 Load songs once here
-            val jsonUrl =
-                "https://el-dmark.github.io/songbook/stream_dev.json"
+            val jsonUrl = "https://el-dmark.github.io/songbook/stream_dev.json"
             val songs = SongRepository.loadSongs(this@MainActivity, jsonUrl)
 
             val lyricsUrl = "https://el-dmark.github.io/songbook/lyricsStream_dev.json"
             val lyrics = LyricsRepository.loadLyrics(this@MainActivity, lyricsUrl)
 
-
             setContent {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
 
-                    NavHost(navController, startDestination = "main") {
-                        composable("main") {
-                            // 🔹 Pass songs down
-                            MainScaffold(
-                                controller = controller!!,
-                                navController = navController,
-                                songs = songs,
-                                lyrics = lyrics
+                    // 🔹 Wrap everything in PlayerHost
+                    PlayerHost(
+                        controller = controller!!,
+                        songs = songs,
+                        lyrics = lyrics
+                    ) {
+                        NavHost(navController, startDestination = "main") {
+                            composable("main") {
+                                MainScreen(
+                                    songs = songs,
+                                    navController = navController,
+                                    controller = controller!!
+                                )
+                            }
 
-                            )
-                        }
-                        composable("settings") {
-                            SettingsScreen(onBack = { navController.popBackStack() })
-                        }
-                        composable("about") {
-                            AboutScreen(onBack = { navController.popBackStack() })
-                        }
-                        composable("artist/{artistName}") { backStackEntry ->
-                            val artistName = backStackEntry.arguments?.getString("artistName") ?: ""
-                            val artistSongs = songs.filter { it.artist == artistName }
-                            SongListScreen(
-                                songs = artistSongs,
-                                onSongSelected = { song ->
-                                    val mediaItems = artistSongs.map { it.toMediaItem() }
-                                    val startIndex = artistSongs.indexOf(song).coerceAtLeast(0)
-                                    controller?.apply {
-                                        setMediaItems(mediaItems, startIndex, 0L)
-                                        prepare()
-                                        play()
-                                    }
+                            composable("songDetail/{songId}") { backStackEntry ->
+                                val songId = backStackEntry.arguments?.getInt("songId")
+                                val song = songs.find { it.songID == songId }
+                                if (song != null) {
+                                    SongDetailScreen(song = song)
                                 }
-                            )
-                        }
-                        composable("playlist/{playlistName}") { backStackEntry ->
-                            val playlistName =
-                                backStackEntry.arguments?.getString("playlistName") ?: ""
-                            val playlistSongs = emptyList<Song>() // placeholder
-                            SongListScreen(
-                                songs = playlistSongs,
-                                onSongSelected = { song ->
-                                    val mediaItems = playlistSongs.map { it.toMediaItem() }
-                                    val startIndex = playlistSongs.indexOf(song).coerceAtLeast(0)
-                                    controller?.apply {
-                                        setMediaItems(mediaItems, startIndex, 0L)
-                                        prepare()
-                                        play()
-                                    }
-                                }
-                            )
+                            }
+
+                            composable("settings") {
+                                SettingsScreen(onBack = { navController.popBackStack() })
+                            }
+
+                            composable("about") {
+                                AboutScreen(onBack = { navController.popBackStack() })
+                            }
                         }
                     }
                 }
             }
         }
+    }
 
-        fun onDestroy() {
-            super.onDestroy()
-            controller?.release()
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        controller?.release()
     }
 }

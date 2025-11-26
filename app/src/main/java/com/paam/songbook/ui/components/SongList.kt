@@ -15,7 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import com.paam.songbook.model.Song
+import com.paam.songbook.Model.Song
 
 @Composable
 fun SongList(

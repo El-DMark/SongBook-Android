@@ -12,7 +12,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.google.gson.Gson
-import com.paam.songbook.model.Song
+import com.paam.songbook.Model.Song
 import com.paam.songbook.ui.components.PlayerScaffold
 import com.paam.songbook.media.toSong
 import kotlinx.coroutines.delay
@@ -24,7 +24,6 @@ fun PlayerHost(
     songs: List<Song>,
     lyrics: List<Lyrics>,
     content: @Composable () -> Unit
-
 ) {
     var currentSong by remember { mutableStateOf<Song?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -41,8 +40,6 @@ fun PlayerHost(
                 currentSong?.let {
                     val json = Gson().toJson(it)
                     Log.d("CurrentSongJSON", json)
-
-                    // 🔍 Log lyrics separately for clarity
                     Log.d("LyricsDebug", "Lyrics: ${it.lyrics}")
                 }
             }
@@ -76,27 +73,22 @@ fun PlayerHost(
         }
     }
 
-    // 🔹 Only show mini‑player if a song is active
-    if (currentSong != null) {
-        PlayerScaffold(
-            currentSong = currentSong,
-            isPlaying = isPlaying,
-            position = position,
-            duration = duration,
-            onPlayPause = {
-                if (controller.isPlaying) controller.pause() else controller.play()
-            },
-            onNext = { controller.seekToNext() },
-            onPrevious = { controller.seekToPrevious() },
-            onSeek = { seekPos -> controller.seekTo(seekPos) },
-            lyrics = lyrics
-        ) {
-            Box(modifier = Modifier.padding(bottom = 0.dp)) {
-                content()
-            }
+    // ✅ Always mount PlayerScaffold
+    PlayerScaffold(
+        currentSong = currentSong,
+        isPlaying = isPlaying,
+        position = position,
+        duration = duration,
+        onPlayPause = {
+            if (controller.isPlaying) controller.pause() else controller.play()
+        },
+        onNext = { controller.seekToNext() },
+        onPrevious = { controller.seekToPrevious() },
+        onSeek = { seekPos -> controller.seekTo(seekPos) },
+        lyrics = lyrics
+    ) {
+        Box(modifier = Modifier.padding(bottom = 0.dp)) {
+            content()
         }
-    } else {
-        // No active song → just show content without reserved space
-        content()
     }
 }

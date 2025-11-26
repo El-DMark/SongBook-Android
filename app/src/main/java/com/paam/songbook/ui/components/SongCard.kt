@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.paam.songbook.model.Song
+import com.paam.songbook.Model.Song
 
 @Composable
 fun SongCard(

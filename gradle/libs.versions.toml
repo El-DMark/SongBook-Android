@@ -24,6 +24,9 @@ palette-ktx = "1.0.0"
 runtime = "1.9.4"
 ui = "1.9.4"
 animation = "1.9.4"
+foundation = "1.9.5"
+animation-core = "1.9.5"
+animation-version = "1.9.5"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -71,3 +74,6 @@ androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", versi
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animation-core" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation-version" }

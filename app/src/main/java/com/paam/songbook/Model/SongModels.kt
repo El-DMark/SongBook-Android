@@ -1,16 +1,9 @@
-package com.paam.songbook.model
+package com.paam.songbook.Model
 
-import android.content.Context
-import android.net.Uri
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import okhttp3.OkHttpClient
-import okhttp3.Request
+
 
 data class Song(
-    val songID: String,
+    val songID: Int,
     val title: String,
     val artist: String,
     val url: String,
@@ -125,14 +118,14 @@ data class Song(
 /**
  * Convert Song to MediaItem for ExoPlayer.
  */
-fun Song.toMediaItem(): MediaItem =
-    MediaItem.Builder()
-        .setUri(url)
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle(title)
-                .setArtist(artist)
-                .setArtworkUri(Uri.parse(albumArt))
-                .build()
-        )
-        .build()
+//fun Song.toMediaItem(): MediaItem =
+//    MediaItem.Builder()
+//        .setUri(url)
+//        .setMediaMetadata(
+//            MediaMetadata.Builder()
+//                .setTitle(title)
+//                .setArtist(artist)
+//                .setArtworkUri(Uri.parse(albumArt))
+//                .build()
+//        )
+//        .build()

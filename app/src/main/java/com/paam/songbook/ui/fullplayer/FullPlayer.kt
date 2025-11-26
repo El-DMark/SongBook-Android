@@ -21,7 +21,7 @@ import androidx.palette.graphics.Palette
 import coil.compose.SubcomposeAsyncImage
 import coil.ImageLoader
 import coil.request.ImageRequest
-import com.paam.songbook.model.Song
+import com.paam.songbook.Model.Song
 import kotlinx.coroutines.launch
 
 // ✅ Helper to check brightness
@@ -95,8 +95,20 @@ fun FullPlayer(
         }
     }
 
-    val matchedLyrics = remember(currentSong?.songID, lyrics) {
-        lyrics.find { it.id.toString() == currentSong?.songID }
+    val matchedLyrics = remember(currentSong.songID, lyrics) {
+        lyrics.find { it.id == currentSong.songID }
+    }
+
+    // ✅ Auto-refresh lyrics when song changes
+    LaunchedEffect(currentSong.songID) {
+        if (showLyrics && matchedLyrics != null) {
+            fetchedLyrics = buildString {
+                appendLine("Chorus:\n${matchedLyrics.chorus}")
+                matchedLyrics.verses.forEach { appendLine(it).appendLine() }
+            }
+        } else {
+            fetchedLyrics = null
+        }
     }
 
     Box(
@@ -145,12 +157,11 @@ fun FullPlayer(
                 matchedLyricsAvailable = matchedLyrics != null,
                 onToggleLyrics = {
                     showLyrics = !showLyrics
-                    if (showLyrics && fetchedLyrics == null && matchedLyrics != null) {
+                    if (showLyrics && matchedLyrics != null) {
                         coroutineScope.launch {
                             fetchedLyrics = buildString {
                                 appendLine("Chorus:\n${matchedLyrics.chorus}")
                                 matchedLyrics.verses.forEach { appendLine(it).appendLine() }
-
                             }
                         }
                     }
@@ -166,7 +177,7 @@ fun FullPlayer(
                 AlbumArtDisplay(
                     albumArt = currentSong.albumArt,
                     title = currentSong.title,
-                    albumSize = albumSize,
+                   // albumSize = albumSize,
                     albumAlpha = albumAlpha
                 )
             }
@@ -194,8 +205,6 @@ fun FullPlayer(
                 onPreviewTimeChange = { previewTime = it },
                 tint = foregroundColor
             )
-
-            //Spacer(Modifier.height(24.dp))
 
             PlaybackControls(
                 isPlaying = isPlaying,

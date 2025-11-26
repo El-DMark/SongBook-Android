@@ -2,6 +2,7 @@ package com.paam.songbook.ui.fullplayer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,21 +23,21 @@ import com.valentinilk.shimmer.shimmer
 fun AlbumArtDisplay(
     albumArt: String,
     title: String,
-    albumSize: Dp,
     albumAlpha: Float
 ) {
     SubcomposeAsyncImage(
         model = albumArt,
         contentDescription = title,
         modifier = Modifier
-            .size(albumSize)
+            .fillMaxHeight(0.6f) // ✅ same proportion as LyricsDisplay
             .alpha(albumAlpha)
             .clip(RoundedCornerShape(12.dp)),
         contentScale = ContentScale.Crop,
         loading = {
             Box(
                 modifier = Modifier
-                    .size(albumSize)
+
+                    .fillMaxHeight(0.6f)
                     .clip(RoundedCornerShape(12.dp))
                     .shimmer()
                     .background(MaterialTheme.colorScheme.surfaceVariant)

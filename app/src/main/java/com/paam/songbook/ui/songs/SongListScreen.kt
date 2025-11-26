@@ -1,60 +1,67 @@
 package com.paam.songbook.ui.songs
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import com.paam.songbook.model.Song
+import com.paam.songbook.Model.Song
+import com.paam.songbook.media.toMediaItem
+import androidx.media3.session.MediaController
 
 @Composable
 fun SongListScreen(
     songs: List<Song>,
-    onSongSelected: (Song) -> Unit
+    onSongSelected: (Song) -> Unit,
+    controller: MediaController
 ) {
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            top = 8.dp,
-            bottom = bottomInset + 72.dp // add player height
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF0F2027), Color(0xFF2C5364))
+                )
+            )
     ) {
-        items(songs) { song ->
-            ListItem(
-                headlineContent = {
-                    Text(
-                        text = song.title,
-                        style = MaterialTheme.typography.bodyMedium//.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                },
-                supportingContent = {
-                    Text(
-                        text = song.artist,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
-                },
-                leadingContent = {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                top = 16.dp,
+                bottom = bottomInset + 72.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(songs) { song ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSongSelected(song) }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 🔹 Album art
                     if (!song.albumArt.isNullOrEmpty()) {
                         Image(
                             painter = rememberAsyncImagePainter(song.albumArt),
@@ -62,13 +69,19 @@ fun SongListScreen(
                             modifier = Modifier
                                 .size(56.dp)
                                 .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Black.copy(alpha = 0.2f))
+                                .border(1.dp, Color.White, RoundedCornerShape(8.dp))
+                                .shadow(4.dp, RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
                         )
                     } else {
-                        // fallback placeholder
                         Box(
                             modifier = Modifier
                                 .size(56.dp)
-                                .clip(RoundedCornerShape(8.dp)),
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                                .border(1.dp, Color.White, RoundedCornerShape(8.dp))
+                                .shadow(4.dp, RoundedCornerShape(8.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -78,23 +91,52 @@ fun SongListScreen(
                             )
                         }
                     }
-                },
-                trailingContent = {
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // 🔹 Song info
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = song.title,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White,
+                            maxLines = 1,
+                            modifier = Modifier.basicMarquee()
+                        )
+                        Text(
+                            text = song.artist,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.LightGray,
+                            maxLines = 1
+                        )
+                    }
+
+                    // 🔹 Actions
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { onSongSelected(song) }) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = "Play")
+                        IconButton(onClick = {
+                            if (controller.isPlaying && controller.currentMediaItem?.mediaId == song.songID.toString()) {
+                                controller.pause()
+                            } else {
+                                val mediaItems = listOf(song.toMediaItem())
+                                controller.setMediaItems(mediaItems, 0, controller.currentPosition)
+                                controller.prepare()
+                                controller.play()
+                            }
+                        }) {
+                            Icon(
+                                imageVector = if (
+                                    controller.isPlaying && controller.currentMediaItem?.mediaId == song.songID.toString()
+                                ) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = if (controller.isPlaying) "Pause" else "Play",
+                                tint = Color.White
+                            )
                         }
                         IconButton(onClick = { /* TODO: show menu */ }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More")
+                            Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
                         }
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSongSelected(song) }
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-            Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                }
+            }
         }
     }
 }

@@ -18,14 +18,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LyricsDisplay(
     fetchedLyrics: String?,
-    textColor: Color // ✅ new parameter
+    textColor: Color
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 400.dp, max = 500.dp)// flexible height
+            .fillMaxHeight(0.6f) // ✅ always 40% of screen height
             .clip(MaterialTheme.shapes.medium)
-            .background(Color.Transparent) // let gradient/background show through
+            .background(Color.Transparent)
     ) {
         // Scrollable lyrics text
         Box(
@@ -37,9 +37,9 @@ fun LyricsDisplay(
             Text(
                 text = fetchedLyrics ?: "Loading lyrics...",
                 style = MaterialTheme.typography.bodyLarge,
-                color = textColor, // ✅ adaptive tint,
-                modifier =Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                color = textColor,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
         }
 
@@ -53,7 +53,7 @@ fun LyricsDisplay(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.4f) // subtle fade
+                            Color.Black.copy(alpha = 0.4f)
                         )
                     )
                 )

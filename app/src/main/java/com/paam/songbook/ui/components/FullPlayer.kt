@@ -20,18 +20,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 //import com.paam.songbook.model.Lyrics.LyricsRepository
-import com.paam.songbook.model.LyricsRepository
-import com.paam.songbook.model.Song
+import com.paam.songbook.Model.Song
 //import com.paam.songbook.model.LyricsRepository
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.launch
@@ -78,8 +74,8 @@ fun FullPlayer(
         }
     }
 
-    val matchedLyrics = remember(currentSong?.songID, lyrics) {
-        lyrics.find { it.id.toString() == currentSong?.songID }
+    val matchedLyrics = remember(currentSong.songID, lyrics) {
+        lyrics.find { it.id == currentSong.songID }
     }
 
     Box(
