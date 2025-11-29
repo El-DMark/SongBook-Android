@@ -49,93 +49,109 @@ fun SongListScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = 16.dp,
-                bottom = bottomInset + 72.dp
+                bottom = bottomInset + 72.dp // Padding for player controls
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(songs) { song ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSongSelected(song) }
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 🔹 Album art
-                    if (!song.albumArt.isNullOrEmpty()) {
-                        Image(
-                            painter = rememberAsyncImagePainter(song.albumArt),
-                            contentDescription = song.title,
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.Black.copy(alpha = 0.2f))
-                                .border(1.dp, Color.White, RoundedCornerShape(8.dp))
-                                .shadow(4.dp, RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                                .border(1.dp, Color.White, RoundedCornerShape(8.dp))
-                                .shadow(4.dp, RoundedCornerShape(8.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                // --- 2. CALL THE NEW COMPOSABLE HERE ---
+                SongListItem(
+                    song = song,
+                    isPlaying = controller.isPlaying && controller.currentMediaItem?.mediaId == song.songID.toString(),
+                    onPlayPauseClicked = {
+                        if (controller.isPlaying && controller.currentMediaItem?.mediaId == song.songID.toString()) {
+                            controller.pause()
+                        } else {
+                            // This logic assumes clicking play on a song plays only that song.
+                            // To play from a list, this logic needs to be passed from the screen level.
+                            onSongSelected(song)
                         }
-                    }
+                    },
+                    onMoreClicked = { /* TODO: show menu */ },
+                    onItemSelected = { onSongSelected(song) }
+                )
+            }
+        }
+    }
+}
 
-                    Spacer(modifier = Modifier.width(12.dp))
+// --- 1. EXTRACTED THE ROW LOGIC INTO ITS OWN COMPOSABLE ---
+@Composable
+fun SongListItem(
+    song: Song,
+    isPlaying: Boolean,
+    onPlayPauseClicked: () -> Unit,
+    onMoreClicked: () -> Unit,
+    onItemSelected: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onItemSelected() } // Use the passed lambda
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 🔹 Album art
+        if (!song.albumArt.isNullOrEmpty()) {
+            Image(
+                painter = rememberAsyncImagePainter(song.albumArt),
+                contentDescription = song.title,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black.copy(alpha = 0.2f))
+                    .border(1.dp, Color.White, RoundedCornerShape(8.dp))
+                    .shadow(4.dp, RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                    .border(1.dp, Color.White, RoundedCornerShape(8.dp))
+                    .shadow(4.dp, RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
 
-                    // 🔹 Song info
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = song.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White,
-                            maxLines = 1,
-                            modifier = Modifier.basicMarquee()
-                        )
-                        Text(
-                            text = song.artist,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.LightGray,
-                            maxLines = 1
-                        )
-                    }
+        Spacer(modifier = Modifier.width(12.dp))
 
-                    // 🔹 Actions
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = {
-                            if (controller.isPlaying && controller.currentMediaItem?.mediaId == song.songID.toString()) {
-                                controller.pause()
-                            } else {
-                                val mediaItems = listOf(song.toMediaItem())
-                                controller.setMediaItems(mediaItems, 0, controller.currentPosition)
-                                controller.prepare()
-                                controller.play()
-                            }
-                        }) {
-                            Icon(
-                                imageVector = if (
-                                    controller.isPlaying && controller.currentMediaItem?.mediaId == song.songID.toString()
-                                ) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (controller.isPlaying) "Pause" else "Play",
-                                tint = Color.White
-                            )
-                        }
-                        IconButton(onClick = { /* TODO: show menu */ }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
-                        }
-                    }
-                }
+        // 🔹 Song info
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = song.title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+                maxLines = 1,
+                modifier = Modifier.basicMarquee()
+            )
+            Text(
+                text = song.artist,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.LightGray,
+                maxLines = 1
+            )
+        }
+
+        // 🔹 Actions
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onPlayPauseClicked) { // Use the passed lambda
+                Icon(
+                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    tint = Color.White
+                )
+            }
+            IconButton(onClick = onMoreClicked) { // Use the passed lambda
+                Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
             }
         }
     }

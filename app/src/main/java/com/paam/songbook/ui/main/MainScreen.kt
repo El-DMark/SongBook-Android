@@ -21,33 +21,29 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
-import com.paam.songbook.model.Song
 import com.paam.songbook.media.toMediaItem
+import com.paam.songbook.model.Playlist
+import com.paam.songbook.model.Song
 import com.paam.songbook.ui.artists.ArtistListScreen
-import com.paam.songbook.ui.components.ArtistFilterList
 import com.paam.songbook.ui.home.HomeScreen
-import com.paam.songbook.ui.playlists.PlaylistScreen
+// --- FIX START ---
+// 1. REMOVED: import com.paam.songbook.ui.playlists.PlaylistItem
+// 2. ADDED correct import for the screen composable
+import com.paam.songbook.ui.playlistsimport.PlaylistScreen
+// --- FIX END ---
 import com.paam.songbook.ui.songs.SongListScreen
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(
     songs: List<Song>,
+    playlists: List<Playlist>,
     navController: NavController,
     controller: MediaController
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
-
-    // --- NEW: STATE MANAGEMENT FOR BOTTOM SHEET ---
-    // State to remember if the bottom sheet is open
-    var isArtistFilterSheetOpen by remember { mutableStateOf(false) }
-    // State for the bottom sheet itself
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    // --- END OF NEW CODE ---
 
     Box(
         modifier = Modifier
@@ -94,7 +90,6 @@ fun MainScreen(
                                 }
                             )
                         } else {
-                            // --- MODIFIED: DYNAMIC TITLE ---
                             val title = when (pagerState.currentPage) {
                                 0 -> "Songs of Bride"
                                 1 -> "Hymns"
@@ -103,7 +98,6 @@ fun MainScreen(
                                 else -> "Songs of Bride" // Fallback
                             }
                             Text(title, color = Color.White)
-                            // --- END OF MODIFICATION ---
                         }
                     },
                     actions = {
@@ -151,18 +145,14 @@ fun MainScreen(
                         }
                         2 -> ArtistListScreen(
                             songs = songs,
-                            // --- MODIFIED: This now opens the bottom sheet ---
-                            onArtistSelected = {
-                                // When an artist is selected, just open the sheet.
-                                // The navigation will be handled from the sheet itself.
-                                isArtistFilterSheetOpen = true
+                            onArtistSelected = { artistName ->
+                                navController.navigate("artist/$artistName")
                             }
-                            // --- END OF MODIFICATION ---
                         )
                         3 -> PlaylistScreen(
-                            playlists = listOf("Favorites", "Cloud"),
+                            playlists = playlists,
                             onPlaylistSelected = { playlist ->
-                                navController.navigate("playlist/$playlist")
+                                navController.navigate("playlist/${playlist.id}")
                             }
                         )
                     }
@@ -170,35 +160,6 @@ fun MainScreen(
             }
         }
     }
-
-    // --- NEW: MODAL BOTTOM SHEET RENDER ---
-    // This will appear when `isArtistFilterSheetOpen` is true
-    if (isArtistFilterSheetOpen) {
-        ModalBottomSheet(
-            onDismissRequest = { isArtistFilterSheetOpen = false },
-            sheetState = sheetState
-        ) {
-            val allArtists = songs.mapNotNull { it.artist.takeIf { it.isNotBlank() } }.distinct().sorted()
-
-            ArtistFilterList(
-                artists = allArtists,
-                selectedArtist = null, // Nothing is pre-selected
-                onArtistSelected = { selectedArtist ->
-                    // This is where the navigation happens
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            isArtistFilterSheetOpen = false // Reset state
-                            // If an artist is selected (not "All Artists"), navigate
-                            if (selectedArtist != null) {
-                                navController.navigate("artist/$selectedArtist")
-                            }
-                        }
-                    }
-                }
-            )
-        }
-    }
-    // --- END OF NEW CODE ---
 }
 
 private fun Song.matchesQuery(query: String): Boolean {

@@ -15,6 +15,7 @@ import com.google.gson.Gson
 import com.paam.songbook.model.Song
 import com.paam.songbook.ui.components.PlayerScaffold
 import com.paam.songbook.media.toSong
+import com.paam.songbook.model.Playlist
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,6 +24,7 @@ fun PlayerHost(
     controller: MediaController,
     songs: List<Song>,
     lyrics: List<Lyrics>,
+    playlists: List<Playlist>,
     content: @Composable () -> Unit
 ) {
     var currentSong by remember { mutableStateOf<Song?>(null) }

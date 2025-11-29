@@ -20,7 +20,12 @@ import com.paam.songbook.ui.about.AboutScreen
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import androidx.navigation.compose.*
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.paam.songbook.model.PlaylistRepository
 import com.paam.songbook.ui.PlayerHost
+import com.paam.songbook.ui.artists.ArtistDetailScreen
+import com.paam.songbook.ui.playlists.PlaylistDetailScreen
 
 @UnstableApi
 class MainActivity : ComponentActivity() {
@@ -46,28 +51,70 @@ class MainActivity : ComponentActivity() {
             val lyricsUrl = "https://el-dmark.github.io/songbook/lyricsStream_dev.json"
             val lyrics = LyricsRepository.loadLyrics(this@MainActivity, lyricsUrl)
 
+            val playlistUrl = "https://el-dmark.github.io/songbook/playlists.json"
+            val playlists = PlaylistRepository.loadPlaylists(this@MainActivity, playlistUrl)
+
             setContent {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
 
-                    // 🔹 Wrap everything in PlayerHost
                     PlayerHost(
                         controller = controller!!,
                         songs = songs,
-                        lyrics = lyrics
+                        lyrics = lyrics,
+                        playlists = playlists
                     ) {
                         NavHost(navController, startDestination = "main") {
                             composable("main") {
                                 MainScreen(
                                     songs = songs,
+                                    playlists = playlists,
                                     navController = navController,
                                     controller = controller!!
                                 )
                             }
 
+                            composable(
+                                route = "artist/{artistName}",
+                                arguments = listOf(navArgument("artistName") { type = NavType.StringType })
+                            ) { backStackEntry ->
+                                val artistName =
+                                    backStackEntry.arguments?.getString("artistName") ?: ""
+                                ArtistDetailScreen(
+                                    artistName = artistName,
+                                    allSongs = songs,
+                                    navController = navController,
+                                    mediaController = controller!!
+                                )
+                            }
+
+                            // --- MODIFICATION START ---
+                            composable(
+                                route = "playlist/{id}",
+                                // 1. Change the argument type to IntType
+                                arguments = listOf(navArgument("id") { type = NavType.IntType })
+                            ) { backStackEntry ->
+                                // 2. Get the argument as an Int. Provide a default value like -1.
+                                val playlistId = backStackEntry.arguments?.getInt("id") ?: -1
+
+                                // 3. The comparison is now Int == Int, which works correctly.
+                                val selectedPlaylist = playlists.find { it.id == playlistId }
+                                val songsInPlaylist = songs.filter { selectedPlaylist?.songs?.contains(it.songID) == true }
+
+                                if (selectedPlaylist != null) {
+                                    PlaylistDetailScreen(
+                                        playlist = selectedPlaylist,
+                                        songs = songsInPlaylist,
+                                        navController = navController,
+                                        mediaController = controller!!
+                                    )
+                                }
+                            }
+                            // --- MODIFICATION END ---
+
                             composable("songDetail/{songId}") { backStackEntry ->
-                                val songId = backStackEntry.arguments?.getInt("songId")
-                                val song = songs.find { it.songID == songId }
+                                val songId = backStackEntry.arguments?.getString("songId")
+                                val song = songs.find { it.songID.toString() == songId }
                                 if (song != null) {
                                     SongDetailScreen(song = song)
                                 }
