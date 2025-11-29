@@ -14,7 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 
 @Composable
 fun SongRow(song: Song, onClick: () -> Unit) {

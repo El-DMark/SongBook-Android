@@ -9,7 +9,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import coil.compose.rememberAsyncImagePainter
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 
 @Composable
 fun AlbumArt(

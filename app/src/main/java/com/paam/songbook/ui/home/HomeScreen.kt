@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 import com.paam.songbook.ui.songs.FeaturedSongCard
 import com.paam.songbook.ui.songs.SongCarousel
 

@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 import com.paam.songbook.ui.home.HomeScreen
 
 /**

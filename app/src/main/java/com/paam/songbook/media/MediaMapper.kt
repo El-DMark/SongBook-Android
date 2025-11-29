@@ -4,7 +4,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 
 // ✅ Convert Song → MediaItem with full metadata
 fun Song.toMediaItem(): MediaItem {

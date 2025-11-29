@@ -21,7 +21,7 @@ import androidx.palette.graphics.Palette
 import coil.compose.SubcomposeAsyncImage
 import coil.ImageLoader
 import coil.request.ImageRequest
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 import kotlinx.coroutines.launch
 
 // ✅ Helper to check brightness
@@ -177,7 +177,7 @@ fun FullPlayer(
                 AlbumArtDisplay(
                     albumArt = currentSong.albumArt,
                     title = currentSong.title,
-                   // albumSize = albumSize,
+                    // albumSize = albumSize,
                     albumAlpha = albumAlpha
                 )
             }

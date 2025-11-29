@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 //import com.paam.songbook.model.Lyrics.LyricsRepository
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 //import com.paam.songbook.model.LyricsRepository
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.launch

@@ -12,7 +12,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.google.gson.Gson
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 import com.paam.songbook.ui.components.PlayerScaffold
 import com.paam.songbook.media.toSong
 import kotlinx.coroutines.delay

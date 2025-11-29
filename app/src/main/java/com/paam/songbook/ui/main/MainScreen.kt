@@ -12,6 +12,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -19,12 +21,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 import com.paam.songbook.media.toMediaItem
 import com.paam.songbook.ui.artists.ArtistListScreen
+import com.paam.songbook.ui.components.ArtistFilterList
 import com.paam.songbook.ui.home.HomeScreen
 import com.paam.songbook.ui.playlists.PlaylistScreen
 import com.paam.songbook.ui.songs.SongListScreen
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -36,6 +40,14 @@ fun MainScreen(
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+
+    // --- NEW: STATE MANAGEMENT FOR BOTTOM SHEET ---
+    // State to remember if the bottom sheet is open
+    var isArtistFilterSheetOpen by remember { mutableStateOf(false) }
+    // State for the bottom sheet itself
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    // --- END OF NEW CODE ---
 
     Box(
         modifier = Modifier
@@ -64,16 +76,14 @@ fun MainScreen(
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
                                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                colors = TextFieldDefaults.textFieldColors(
-                                    containerColor = Color.Transparent,
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Transparent,
                                     cursorColor = Color.White,
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
-                                    disabledIndicatorColor = Color.Transparent,
-                                    focusedPlaceholderColor = Color.LightGray,
-                                    unfocusedPlaceholderColor = Color.LightGray
+                                    disabledIndicatorColor = Color.Transparent
                                 ),
                                 trailingIcon = {
                                     IconButton(onClick = {
@@ -132,9 +142,13 @@ fun MainScreen(
                         }
                         2 -> ArtistListScreen(
                             songs = songs,
-                            onArtistSelected = { artist ->
-                                navController.navigate("artist/$artist")
+                            // --- MODIFIED: This now opens the bottom sheet ---
+                            onArtistSelected = {
+                                // When an artist is selected, just open the sheet.
+                                // The navigation will be handled from the sheet itself.
+                                isArtistFilterSheetOpen = true
                             }
+                            // --- END OF MODIFICATION ---
                         )
                         3 -> PlaylistScreen(
                             playlists = listOf("Favorites", "Cloud"),
@@ -144,11 +158,38 @@ fun MainScreen(
                         )
                     }
                 }
-
-
             }
         }
     }
+
+    // --- NEW: MODAL BOTTOM SHEET RENDER ---
+    // This will appear when `isArtistFilterSheetOpen` is true
+    if (isArtistFilterSheetOpen) {
+        ModalBottomSheet(
+            onDismissRequest = { isArtistFilterSheetOpen = false },
+            sheetState = sheetState
+        ) {
+            val allArtists = songs.mapNotNull { it.artist.takeIf { it.isNotBlank() } }.distinct().sorted()
+
+            ArtistFilterList(
+                artists = allArtists,
+                selectedArtist = null, // Nothing is pre-selected
+                onArtistSelected = { selectedArtist ->
+                    // This is where the navigation happens
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            isArtistFilterSheetOpen = false // Reset state
+                            // If an artist is selected (not "All Artists"), navigate
+                            if (selectedArtist != null) {
+                                navController.navigate("artist/$selectedArtist")
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    }
+    // --- END OF NEW CODE ---
 }
 
 private fun Song.matchesQuery(query: String): Boolean {

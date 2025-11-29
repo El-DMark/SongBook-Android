@@ -1,4 +1,4 @@
-package com.paam.songbook.Model
+package com.paam.songbook.model
 
 
 

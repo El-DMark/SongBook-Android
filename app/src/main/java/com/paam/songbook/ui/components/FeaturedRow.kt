@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 
 @Composable
 fun FeaturedRow(

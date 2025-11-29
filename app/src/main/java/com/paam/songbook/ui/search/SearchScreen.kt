@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.paam.songbook.Model.Song
+import com.paam.songbook.model.Song
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
