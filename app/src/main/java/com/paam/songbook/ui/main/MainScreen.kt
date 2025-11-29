@@ -94,7 +94,16 @@ fun MainScreen(
                                 }
                             )
                         } else {
-                            Text("Songs of Bride", color = Color.White)
+                            // --- MODIFIED: DYNAMIC TITLE ---
+                            val title = when (pagerState.currentPage) {
+                                0 -> "Songs of Bride"
+                                1 -> "Hymns"
+                                2 -> "Saints"
+                                3 -> "Playlists"
+                                else -> "Songs of Bride" // Fallback
+                            }
+                            Text(title, color = Color.White)
+                            // --- END OF MODIFICATION ---
                         }
                     },
                     actions = {
