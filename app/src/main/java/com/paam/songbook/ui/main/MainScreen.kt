@@ -1,6 +1,7 @@
 package com.paam.songbook.ui.main
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -20,7 +21,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily.Companion.Cursive
-import androidx.compose.ui.text.font.FontFamily.Companion.SansSerif
 import androidx.compose.ui.unit.sp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
@@ -29,11 +29,7 @@ import com.paam.songbook.model.Playlist
 import com.paam.songbook.model.Song
 import com.paam.songbook.ui.artists.ArtistListScreen
 import com.paam.songbook.ui.home.HomeScreen
-// --- FIX START ---
-// 1. REMOVED: import com.paam.songbook.ui.playlists.PlaylistItem
-// 2. ADDED correct import for the screen composable
-import com.paam.songbook.ui.playlistsimport.PlaylistScreen
-// --- FIX END ---
+import com.paam.songbook.ui.playlistsimport.PlaylistScreen // Corrected import
 import com.paam.songbook.ui.songs.SongListScreen
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -47,6 +43,12 @@ fun MainScreen(
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+
+    // When the user switches tabs, exit search mode and clear the query
+    LaunchedEffect(pagerState.currentPage) {
+        isSearching = false
+        query = ""
+    }
 
     Box(
         modifier = Modifier
@@ -69,16 +71,24 @@ fun MainScreen(
                             TextField(
                                 value = query,
                                 onValueChange = { query = it },
-                                placeholder = { Text("Search songs...", color = Color.LightGray) },
+                                placeholder = {
+                                    // 4. Dynamic placeholder text
+                                    val placeholderText = when (pagerState.currentPage) {
+                                        1 -> "Search hymns..."
+                                        2 -> "Search saints..."
+                                        3 -> "Search playlists..."
+                                        else -> "Search..."
+                                    }
+                                    Text(placeholderText, color = Color.LightGray)
+                                },
                                 singleLine = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
                                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.Transparent,
-                                    disabledContainerColor = Color.Transparent,
+                                // 6. FIX API CALL for TextField colors
+                                colors = TextFieldDefaults.textFieldColors(
+                                    containerColor = Color.Transparent,
                                     cursorColor = Color.White,
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
@@ -100,11 +110,12 @@ fun MainScreen(
                                 3 -> "Playlists"
                                 else -> "Tehillah" // Fallback
                             }
-                            Text(title, color = Color.White, fontFamily=Cursive, fontSize = 42.sp )
+                            Text(title, color = Color.White, fontFamily = Cursive, fontSize = 42.sp)
                         }
                     },
                     actions = {
-                        if (!isSearching) {
+                        // 3. Hide Search on Home Screen (Page 0)
+                        if (!isSearching && pagerState.currentPage != 0) {
                             IconButton(onClick = { isSearching = true }) {
                                 Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
                             }
@@ -113,6 +124,7 @@ fun MainScreen(
                             Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White)
                         }
                     },
+                    // 6. FIX API CALL for TopAppBar colors
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
             }
@@ -126,6 +138,7 @@ fun MainScreen(
                     state = pagerState,
                     flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
                 ) { page ->
+                    // 1. Context-aware filtering
                     when (page) {
                         0 -> HomeScreen(
                             songs = songs,
@@ -147,13 +160,15 @@ fun MainScreen(
                             )
                         }
                         2 -> ArtistListScreen(
-                            songs = songs,
+                            // ArtistListScreen gets a filtered list of songs to derive the artists
+                            songs = songs.filter { it.matchesQuery(query) },
                             onArtistSelected = { artistName ->
                                 navController.navigate("artist/$artistName")
                             }
                         )
                         3 -> PlaylistScreen(
-                            playlists = playlists,
+                            // PlaylistScreen gets a filtered list of playlists
+                            playlists = playlists.filter { it.matchesQuery(query) },
                             onPlaylistSelected = { playlist ->
                                 navController.navigate("playlist/${playlist.id}")
                             }
@@ -165,8 +180,16 @@ fun MainScreen(
     }
 }
 
+// Existing filter function for Songs (used for Hymns and Saints)
 private fun Song.matchesQuery(query: String): Boolean {
     return query.isBlank() ||
             title.contains(query, ignoreCase = true) ||
             artist.contains(query, ignoreCase = true)
+}
+
+// 2. New filter function for Playlists
+private fun Playlist.matchesQuery(query: String): Boolean {
+    return query.isBlank() ||
+            name.contains(query, ignoreCase = true) ||
+            description?.contains(query, ignoreCase = true) == true
 }
