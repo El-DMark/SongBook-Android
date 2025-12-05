@@ -42,7 +42,7 @@ fun SongCarousel(
     LazyRow(
         modifier = modifier,
         // Use contentPadding for consistent spacing at the start and end
-        contentPadding = PaddingValues(horizontal = 16.dp),
+        contentPadding = PaddingValues(horizontal = 6.dp),
         // Arrangement.spacedBy handles the spacing between items
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {

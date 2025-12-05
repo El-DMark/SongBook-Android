@@ -19,6 +19,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily.Companion.Cursive
+import androidx.compose.ui.text.font.FontFamily.Companion.SansSerif
+import androidx.compose.ui.unit.sp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.media.toMediaItem
@@ -91,13 +94,13 @@ fun MainScreen(
                             )
                         } else {
                             val title = when (pagerState.currentPage) {
-                                0 -> "Songs of Bride"
+                                0 -> "Tehillah"
                                 1 -> "Hymns"
                                 2 -> "Saints"
                                 3 -> "Playlists"
-                                else -> "Songs of Bride" // Fallback
+                                else -> "Tehillah" // Fallback
                             }
-                            Text(title, color = Color.White)
+                            Text(title, color = Color.White, fontFamily=Cursive, fontSize = 42.sp )
                         }
                     },
                     actions = {

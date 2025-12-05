@@ -35,10 +35,10 @@ fun HomeScreen(
                     colors = listOf(Color(0xFF0F2027), Color(0xFF2C5364))
                 )
             )
-            .padding(16.dp),
+            .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp) // Use Arrangement for consistent spacing
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+       // Spacer(modifier = Modifier.height(16.dp))
 
         // 🔹 Featured Song
         if (featuredSong != null) {
@@ -57,6 +57,6 @@ fun HomeScreen(
             controller = controller
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+      // Spacer(modifier = Modifier.height(24.dp))
     }
 }
