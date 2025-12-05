@@ -120,9 +120,9 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            composable("settings") {
-                                SettingsScreen(onBack = { navController.popBackStack() })
-                            }
+//                            composable("settings") {
+//                                SettingsScreen(onBack = { navController.popBackStack() })
+//                            }
 
                             composable("about") {
                                 AboutScreen(onBack = { navController.popBackStack() })

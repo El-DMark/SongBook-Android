@@ -3,6 +3,7 @@ package com.paam.songbook.ui.components
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -38,12 +40,14 @@ fun MiniPlayer(
 
     val painter = rememberAsyncImagePainter(currentSong.albumArt)
 
-    Surface(
+    // --- SOLUTION ---
+    // Change the Surface to a Box with a specific background color that matches your app's dark theme.
+    // This makes the player look intentional and removes the "empty space" feeling.
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onExpand() },
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp
+            .background(Color(0xFF0D1B2A).copy(alpha = 0.95f)) // A dark, slightly translucent color
+            .clickable { onExpand() }
     ) {
         Column {
             Row(
@@ -69,38 +73,44 @@ fun MiniPlayer(
                         currentSong.title,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
+                        // Explicitly set text color to white
                     )
                     Text(
                         currentSong.artist,
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = Color.White.copy(alpha = 0.7f) // Lighter white for subtitle
                     )
                 }
 
+                // Set icon tints to white for visibility
                 IconButton(onClick = onPlayPause) {
                     Crossfade(targetState = isPlaying, label = "playPauseAnim") { playing ->
                         Icon(
                             if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = "Play/Pause",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = Color.White
                         )
                     }
                 }
                 IconButton(onClick = onNext) {
-                    Icon(Icons.Default.SkipNext, contentDescription = "Next", tint = MaterialTheme.colorScheme.onSurface)
+                    Icon(
+                        Icons.Default.SkipNext,
+                        contentDescription = "Next",
+                        tint = Color.White
+                    )
                 }
             }
 
             if (duration > 0) {
                 LinearProgressIndicator(
-                    progress = animatedProgress,
+                    progress = { animatedProgress }, // Correct lambda syntax for newer versions
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(2.dp),
+                        .height(4.dp),
                     color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                    trackColor = Color.White.copy(alpha = 0.2f)
                 )
             }
         }

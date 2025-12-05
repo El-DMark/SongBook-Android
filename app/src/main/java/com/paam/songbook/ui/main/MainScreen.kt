@@ -8,6 +8,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -31,6 +32,7 @@ import com.paam.songbook.ui.artists.ArtistListScreen
 import com.paam.songbook.ui.home.HomeScreen
 import com.paam.songbook.ui.playlistsimport.PlaylistScreen // Corrected import
 import com.paam.songbook.ui.songs.SongListScreen
+import androidx.compose.material.icons.filled.Info
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -120,8 +122,8 @@ fun MainScreen(
                                 Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
                             }
                         }
-                        IconButton(onClick = { navController.navigate("settings") }) {
-                            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White)
+                        IconButton(onClick = { navController.navigate("about") }) {
+                            Icon(Icons.Default.Info, contentDescription = "About", tint = Color.White)
                         }
                     },
                     // 6. FIX API CALL for TopAppBar colors
