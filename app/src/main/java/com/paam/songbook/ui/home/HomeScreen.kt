@@ -21,10 +21,21 @@ fun HomeScreen(
     songs: List<Song>,
     navController: NavController,
     controller: MediaController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    featuredsongid: Int?
 ) {
     val scrollState = rememberScrollState()
-    val featuredSong = songs.firstOrNull()
+
+    // --- THIS IS THE FIX ---
+    // 1. Check if featuredsongid is not null.
+    // 2. If it's not null, use it to safely get the song from the list.
+    //    We use 'getOrNull' which is safer than 'get()' as it prevents crashes if the id is out of bounds.
+    val featuredSong = if (featuredsongid != null) {
+        songs.getOrNull(featuredsongid - 1) // Use getOrNull and adjust for zero-based index
+    } else {
+        songs.getOrNull(1)
+    }
+
 
     Column(
         modifier = modifier
@@ -38,11 +49,11 @@ fun HomeScreen(
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp) // Use Arrangement for consistent spacing
     ) {
-       // Spacer(modifier = Modifier.height(16.dp))
+        // Spacer(modifier = Modifier.height(16.dp))
 
         // 🔹 Featured Song
         if (featuredSong != null) {
-            FeaturedSongCard(song = featuredSong)
+            FeaturedSongCard(song = featuredSong,controller)
         }
 
         // 🔹 Recently Added (Using the new composable)
@@ -57,6 +68,6 @@ fun HomeScreen(
             controller = controller
         )
 
-      // Spacer(modifier = Modifier.height(24.dp))
+        // Spacer(modifier = Modifier.height(24.dp))
     }
 }

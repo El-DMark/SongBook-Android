@@ -8,10 +8,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -33,6 +31,7 @@ import com.paam.songbook.ui.home.HomeScreen
 import com.paam.songbook.ui.playlistsimport.PlaylistScreen // Corrected import
 import com.paam.songbook.ui.songs.SongListScreen
 import androidx.compose.material.icons.filled.Info
+import kotlin.Int
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -40,7 +39,8 @@ fun MainScreen(
     songs: List<Song>,
     playlists: List<Playlist>,
     navController: NavController,
-    controller: MediaController
+    controller: MediaController,
+    featuredsongid: Int?
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
     var isSearching by remember { mutableStateOf(false) }
@@ -145,7 +145,8 @@ fun MainScreen(
                         0 -> HomeScreen(
                             songs = songs,
                             navController = navController,
-                            controller = controller
+                            controller = controller,
+                            featuredsongid = featuredsongid
                         )
                         1 -> {
                             val filteredSongs = songs.filter { it.matchesQuery(query) }

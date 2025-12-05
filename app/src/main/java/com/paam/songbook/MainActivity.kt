@@ -15,7 +15,6 @@ import com.paam.songbook.model.SongRepository
 import com.paam.songbook.model.LyricsRepository
 import com.paam.songbook.ui.main.MainScreen
 import com.paam.songbook.ui.songdetail.SongDetailScreen
-import com.paam.songbook.ui.settings.SettingsScreen
 import com.paam.songbook.ui.about.AboutScreen
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
@@ -53,6 +52,7 @@ class MainActivity : ComponentActivity() {
 
             val playlistUrl = "https://el-dmark.github.io/songbook/playlists.json"
             val playlists = PlaylistRepository.loadPlaylists(this@MainActivity, playlistUrl)
+            val featuredSongId = playlists?.featuredSongId
 
             setContent {
                 Surface(color = MaterialTheme.colorScheme.background) {
@@ -62,15 +62,17 @@ class MainActivity : ComponentActivity() {
                         controller = controller!!,
                         songs = songs,
                         lyrics = lyrics,
-                        playlists = playlists
+                        playlists = playlists?.playlists ?: emptyList()
+
                     ) {
                         NavHost(navController, startDestination = "main") {
                             composable("main") {
                                 MainScreen(
                                     songs = songs,
-                                    playlists = playlists,
+                                    playlists = playlists?.playlists ?: emptyList(),
                                     navController = navController,
-                                    controller = controller!!
+                                    controller = controller!!,
+                                    featuredsongid =featuredSongId
                                 )
                             }
 
@@ -98,7 +100,7 @@ class MainActivity : ComponentActivity() {
                                 val playlistId = backStackEntry.arguments?.getInt("id") ?: -1
 
                                 // 3. The comparison is now Int == Int, which works correctly.
-                                val selectedPlaylist = playlists.find { it.id == playlistId }
+                                val selectedPlaylist = playlists?.playlists?.find { it.id == playlistId }
                                 val songsInPlaylist = songs.filter { selectedPlaylist?.songs?.contains(it.songID) == true }
 
                                 if (selectedPlaylist != null) {

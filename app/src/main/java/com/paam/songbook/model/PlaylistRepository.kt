@@ -7,57 +7,58 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import com.paam.songbook.model.Playlist
-// --- THIS IS THE FIX ---
-// Add the missing import for the wrapper class.
-import com.paam.songbook.model.PlaylistsResponse
 
 /**
  * Manages loading playlist data from a remote URL with local caching.
- * Follows the same logic as SongRepository.
+ * Loads the entire response, including the list of playlists and the featured song ID.
  */
 object PlaylistRepository {
-    // Use a different preference name to keep caches separate
+
     private const val PREF_NAME = "playlist_cache"
     private const val KEY_JSON = "cached_playlist_json"
 
     /**
-     * Loads a list of playlists.
+     * Loads the entire playlist response structure (playlists and featured song).
      *
      * It first tries to fetch from the network. On success, it caches the result.
-     * On failure, it attempts to load from the cache.
-     * If both fail, it returns an empty list.
+     * On failure, it attempts to load from the last cached version.
+     * If both network and cache fail, it returns null.
      *
-     * @param context The application context.
-     * @param jsonUrl The URL of the JSON file containing playlist data.
-     * @param useCacheOnly If true, skips the network request and loads only from cache.
-     * @return A list of Playlist objects.
+     * @param context The application context for accessing SharedPreferences.
+     * @param jsonUrl The URL of the remote JSON file.
+     * @param useCacheOnly If true, forces the repository to only use the local cache.
+     * @return A PlaylistsResponse object or null on complete failure.
      */
-    suspend fun loadPlaylists(context: Context, jsonUrl: String, useCacheOnly: Boolean = false): List<Playlist> {
+    suspend fun loadPlaylists(
+        context: Context,
+        jsonUrl: String,
+        useCacheOnly: Boolean = false
+    ): PlaylistsResponse? {
         return try {
             val json = if (useCacheOnly) {
                 getCachedJson(context) ?: throw Exception("No cached playlist data available")
             } else {
-                val fetched = fetchJson(jsonUrl)
-                cacheJson(context, fetched)
-                fetched
+                val fetchedJson = fetchJson(jsonUrl)
+                cacheJson(context, fetchedJson)
+                fetchedJson
             }
             parseJson(json)
         } catch (e: Exception) {
             println("⚠️ Failed to load playlists from network: ${e.message}")
-            // Fallback to cache
-            getCachedJson(context)?.let {
-                println("📦 Using cached playlist data")
-                parseJson(it)
+            // Fallback to cache if network fails
+            getCachedJson(context)?.let { cachedJson ->
+                println("📦 Using cached playlist data as fallback.")
+                parseJson(cachedJson)
             } ?: run {
-                println("❌ No cached playlist data available")
-                emptyList()
+                println("❌ Network and cache both failed. No playlist data available.")
+                null
             }
         }
     }
 
     /**
-     * Fetches JSON content from a given URL.
+     * Fetches the JSON content as a string from a given URL using OkHttp.
+     * This function runs on the IO dispatcher.
      */
     private suspend fun fetchJson(url: String): String = withContext(Dispatchers.IO) {
         val client = OkHttpClient()
@@ -72,22 +73,12 @@ object PlaylistRepository {
     }
 
     /**
-     * Caches the provided JSON string in SharedPreferences.
+     * Caches the provided JSON string in SharedPreferences for offline use.
      */
     private fun cacheJson(context: Context, json: String) {
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
             .edit()
             .putString(KEY_JSON, json)
-            .apply()
-    }
-
-    /**
-     * Clears the playlist cache from SharedPreferences.
-     */
-    fun clearCache(context: Context) {
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .remove(KEY_JSON)
             .apply()
     }
 
@@ -100,20 +91,29 @@ object PlaylistRepository {
     }
 
     /**
-     * Parses a JSON string into a list of Playlist objects.
+     * Parses a JSON string into a PlaylistsResponse object using Gson.
+     *
+     * @return A PlaylistsResponse object, or null if parsing fails.
      */
-    private fun parseJson(json: String): List<Playlist> {
+    private fun parseJson(json: String): PlaylistsResponse? {
         return try {
-            // This line will now compile correctly because of the new import.
+            // This type token tells Gson to parse into our top-level PlaylistsResponse object
             val type = object : TypeToken<PlaylistsResponse>() {}.type
-
-            val response = Gson().fromJson<PlaylistsResponse>(json, type)
-
-            response.playlists ?: emptyList()
-
+            Gson().fromJson<PlaylistsResponse>(json, type)
         } catch (e: Exception) {
             println("❌ Playlist JSON parsing failed: ${e.message}")
-            emptyList()
+            null
         }
+    }
+
+    /**
+     * Clears the playlist cache from SharedPreferences. Can be used for a "force refresh".
+     */
+    fun clearCache(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .remove(KEY_JSON)
+            .apply()
+        println("🧹 Playlist cache cleared.")
     }
 }

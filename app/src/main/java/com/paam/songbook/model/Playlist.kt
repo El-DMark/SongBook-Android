@@ -4,7 +4,10 @@ import com.google.gson.annotations.SerializedName
 
 // Root wrapper for JSON
 data class PlaylistsResponse(
-    val playlists: List<Playlist>
+    val playlists: List<Playlist>,
+
+    @SerializedName("featuredsong")
+    val featuredSongId: Int?
 )
 
 // Single playlist

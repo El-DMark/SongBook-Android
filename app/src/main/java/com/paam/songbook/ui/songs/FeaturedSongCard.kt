@@ -2,6 +2,9 @@ package com.paam.songbook.ui.songs
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+// --- 1. ADD clickable import ---
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,16 +36,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+// --- 2. ADD MediaController and MediaItem imports ---
+import androidx.media3.common.MediaItem
+import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
 import com.paam.songbook.media.DailyBreadFetcher
-import com.paam.songbook.media.VerseData // <-- 1. Import the new data class
+import com.paam.songbook.media.VerseData
 import com.paam.songbook.model.Song
+import com.paam.songbook.media.toMediaItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.yield
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FeaturedSongCard(song: Song) {
+// --- 3. ACCEPT MediaController as a parameter ---
+fun FeaturedSongCard(song: Song, controller: MediaController?) {
     // We can have more slides in the future
     val pageCount = 2
     val pagerState = rememberPagerState(pageCount = { pageCount })
@@ -74,8 +82,9 @@ fun FeaturedSongCard(song: Song) {
             ) { page ->
                 // Use a when statement to build different slides
                 when (page) {
-                    0 -> ImageSlide(song)
-                    1 -> TextSlide() // Pass nothing as it's self-contained now
+                    // --- 4. PASS controller down to the ImageSlide ---
+                    0 -> ImageSlide(song = song, controller = controller)
+                    1 -> TextSlide()
                 }
             }
         }
@@ -100,9 +109,26 @@ fun FeaturedSongCard(song: Song) {
 }
 
 @Composable
-private fun ImageSlide(song: Song) {
+// --- 5. ACCEPT controller in ImageSlide ---
+private fun ImageSlide(song: Song, controller: MediaController?) {
+    val interactionSource = remember { MutableInteractionSource() }
+
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            // --- 6. ADD the clickable modifier ---
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null, // Disable ripple effect for a clean click
+                onClick = {
+                    controller?.let {
+                        it.clearMediaItems() // Clear previous playlist
+                        it.addMediaItem(song.toMediaItem()) // Add only this song
+                        it.prepare()
+                        it.play()
+                    }
+                }
+            ),
         contentAlignment = Alignment.BottomStart
     ) {
         // Album art as the background image
@@ -128,23 +154,32 @@ private fun ImageSlide(song: Song) {
                 )
         )
 
-        // Song title
-        Text(
-            text = song.title,
-            style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
+        // Use a Column to stack the title and artist name vertically.
+        Column(
             modifier = Modifier.padding(16.dp)
-        )
+        ) {
+            // Song title
+            Text(
+                text = song.title,
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White
+            )
+
+            // Artist name
+            Text(
+                text = song.artist,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.8f) // Slightly transparent for secondary info
+            )
+        }
     }
 }
 
 @Composable
 private fun TextSlide() {
-    // 2. Updated state management
     var verseData by remember { mutableStateOf<VerseData?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // 3. Updated LaunchedEffect to handle the new states
     LaunchedEffect(Unit) {
         isLoading = true
         verseData = DailyBreadFetcher().fetchVerse()
@@ -165,7 +200,6 @@ private fun TextSlide() {
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        // 4. Updated UI to handle loading, success (with reference), and failure states
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             when {
                 isLoading -> {
@@ -178,7 +212,6 @@ private fun TextSlide() {
                 }
                 verseData != null -> {
                     Text(
-                        // Display the main quote text
                         text = "\"${verseData!!.text}\"",
                         style = MaterialTheme.typography.bodyLarge,
                         color = Color.White,
@@ -186,7 +219,6 @@ private fun TextSlide() {
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        // Display the reference text
                         text = verseData!!.reference,
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.7f)
