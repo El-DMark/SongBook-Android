@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -14,7 +13,8 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
 import com.paam.songbook.ui.songs.FeaturedSongCard
-import com.paam.songbook.ui.songs.SongCarousel
+import com.paam.songbook.ui.songs.MostListenedSection // 👈 Import new composable
+import com.paam.songbook.ui.songs.RecentlyAddedSection // 👈 Import new composable
 
 @Composable
 fun HomeScreen(
@@ -35,31 +35,25 @@ fun HomeScreen(
                     colors = listOf(Color(0xFF0F2027), Color(0xFF2C5364))
                 )
             )
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp) // Use Arrangement for consistent spacing
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // 🔹 Featured Song
         if (featuredSong != null) {
             FeaturedSongCard(song = featuredSong)
-            Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // 🔹 Recently Added
-        Text("Recently Added", style = MaterialTheme.typography.titleMedium, color = Color.White)
-        Spacer(modifier = Modifier.height(8.dp))
-        SongCarousel(
-            songs = songs.take(6),
+        // 🔹 Recently Added (Using the new composable)
+        RecentlyAddedSection(
+            songs = songs,
             controller = controller
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 🔹 Popular Hymns
-        Text("Most Listened", style = MaterialTheme.typography.titleMedium, color = Color.White)
-        Spacer(modifier = Modifier.height(8.dp))
-        SongCarousel(
-            songs = songs.reversed().take(6),
+        // 🔹 Most Listened (Using the new composable)
+        MostListenedSection(
+            songs = songs,
             controller = controller
         )
 
