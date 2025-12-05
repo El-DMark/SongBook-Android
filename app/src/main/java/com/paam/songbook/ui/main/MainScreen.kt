@@ -193,3 +193,4 @@ private fun Playlist.matchesQuery(query: String): Boolean {
             name.contains(query, ignoreCase = true) ||
             description?.contains(query, ignoreCase = true) == true
 }
+//Mark David
