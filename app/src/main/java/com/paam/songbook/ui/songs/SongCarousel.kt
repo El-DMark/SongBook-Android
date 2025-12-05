@@ -78,7 +78,7 @@ private fun SongCarouselItem(
         modifier = Modifier
             // --- 1. SIZE REDUCED ---
             .width(120.dp)
-            .height(160.dp)
+            .height(140.dp)
             .clip(cardShape) // Clip the content inside
             // --- 2. BORDER ADDED ---
             // Add a border that follows the clipped shape

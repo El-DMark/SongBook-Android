@@ -47,7 +47,7 @@ fun MostListenedSection(
         Spacer(modifier = Modifier.height(8.dp))
         SongCarousel(
             // Business logic: "Most Listened" are the last 6 songs, reversed
-            songs = songs.reversed().take(6),
+            songs = songs.reversed().take(7),
             controller = controller
         )
     }
