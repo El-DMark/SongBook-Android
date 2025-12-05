@@ -2,6 +2,9 @@ package com.paam.songbook.ui.about
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+// --- 1. IMPORT `rememberScrollState` and `verticalScroll` ---
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -18,7 +21,6 @@ import androidx.compose.ui.unit.sp
 fun AboutScreen(
     onBack: () -> Unit
 ) {
-    // 1. Add a Box with the app's standard gradient background
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -29,34 +31,34 @@ fun AboutScreen(
             )
     ) {
         Scaffold(
-            // 2. Make the Scaffold and TopAppBar transparent
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("About", color = Color.White) }, // 3. Set title color
+                    title = { Text("About", color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(
                                 Icons.Default.ArrowBack,
                                 contentDescription = "Back",
-                                tint = Color.White // 3. Set icon color
+                                tint = Color.White
                             )
                         }
                     },
-                    // Use the same colors as in MainScreen
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent
                     )
                 )
             }
         ) { padding ->
+            // --- 2. APPLY THE `verticalScroll` MODIFIER TO THE COLUMN ---
             Column(
                 modifier = Modifier
                     .padding(padding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(16.dp)
+                    // This makes the Column's content scrollable
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // 4. Adjust text colors for the dark background
                 Text(
                     "Tehillah",
                     style = MaterialTheme.typography.headlineSmall,
@@ -101,14 +103,14 @@ fun AboutScreen(
                 )
                 Text(
                     "App Version 1.0.0\n"
-                    +"Song Repo Version 1.0.0",
+                            + "Song Repo Version 1.0.0",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f) // Slightly less prominent
+                    color = Color.White.copy(alpha = 0.8f)
                 )
                 Divider(color = Color.White.copy(alpha = 0.3f))
 
                 Text(
-                    "Contacts",
+                    "Contacts Us",
                     style = MaterialTheme.typography.titleSmall,
                     color = Color.White
 
@@ -116,7 +118,7 @@ fun AboutScreen(
                 Text(
                     "Email: davidmark275@gmail.com",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f) // Slightly less prominent
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
         }
