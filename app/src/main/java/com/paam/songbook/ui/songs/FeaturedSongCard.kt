@@ -1,8 +1,10 @@
 package com.paam.songbook.ui.songs
 
+import android.content.Context
+import android.content.Intent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-// --- 1. ADD clickable import ---
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -15,11 +17,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,35 +44,45 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-// --- 2. ADD MediaController and MediaItem imports ---
-import androidx.media3.common.MediaItem
+import androidx.compose.ui.window.Dialog
 import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.paam.songbook.media.DailyBreadFetcher
 import com.paam.songbook.media.VerseData
-import com.paam.songbook.model.Song
+import com.paam.songbook.media.VerseSharer
 import com.paam.songbook.media.toMediaItem
+import com.paam.songbook.model.Song
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
+import java.net.URL
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-// --- 3. ACCEPT MediaController as a parameter ---
 fun FeaturedSongCard(song: Song, controller: MediaController?) {
-    // We can have more slides in the future
     val pageCount = 2
     val pagerState = rememberPagerState(pageCount = { pageCount })
 
-    // Auto-scrolling coroutine
-    LaunchedEffect(Unit) {
-        while(true) {
-            delay(5000) // Wait for 5 seconds on the current page
-            yield()
-            val nextPage = (pagerState.currentPage + 1) % pageCount
-            pagerState.animateScrollToPage(nextPage)
+    var isVerseDialogShowing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isVerseDialogShowing) {
+        if (!isVerseDialogShowing) {
+            while (true) {
+                delay(5000)
+                yield()
+                val nextPage = (pagerState.currentPage + 1) % pageCount
+                pagerState.animateScrollToPage(nextPage)
+            }
         }
     }
 
@@ -80,18 +101,18 @@ fun FeaturedSongCard(song: Song, controller: MediaController?) {
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { page ->
-                // Use a when statement to build different slides
                 when (page) {
-                    // --- 4. PASS controller down to the ImageSlide ---
                     0 -> ImageSlide(song = song, controller = controller)
-                    1 -> TextSlide()
+                    1 -> TextSlide(
+                        isDialogShowing = isVerseDialogShowing,
+                        onDialogVisibilityChange = { isVerseDialogShowing = it }
+                    )
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Page indicators
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
@@ -109,21 +130,19 @@ fun FeaturedSongCard(song: Song, controller: MediaController?) {
 }
 
 @Composable
-// --- 5. ACCEPT controller in ImageSlide ---
 private fun ImageSlide(song: Song, controller: MediaController?) {
     val interactionSource = remember { MutableInteractionSource() }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // --- 6. ADD the clickable modifier ---
             .clickable(
                 interactionSource = interactionSource,
-                indication = null, // Disable ripple effect for a clean click
+                indication = null,
                 onClick = {
                     controller?.let {
-                        it.clearMediaItems() // Clear previous playlist
-                        it.addMediaItem(song.toMediaItem()) // Add only this song
+                        it.clearMediaItems()
+                        it.addMediaItem(song.toMediaItem())
                         it.prepare()
                         it.play()
                     }
@@ -131,7 +150,6 @@ private fun ImageSlide(song: Song, controller: MediaController?) {
             ),
         contentAlignment = Alignment.BottomStart
     ) {
-        // Album art as the background image
         AsyncImage(
             model = song.albumArt,
             contentDescription = song.title,
@@ -139,7 +157,6 @@ private fun ImageSlide(song: Song, controller: MediaController?) {
             contentScale = ContentScale.Crop
         )
 
-        // Gradient overlay for text readability
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -154,29 +171,29 @@ private fun ImageSlide(song: Song, controller: MediaController?) {
                 )
         )
 
-        // Use a Column to stack the title and artist name vertically.
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Song title
             Text(
                 text = song.title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.bodyLarge,
                 color = Color.White
             )
 
-            // Artist name
             Text(
                 text = song.artist,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.8f) // Slightly transparent for secondary info
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
     }
 }
 
 @Composable
-private fun TextSlide() {
+private fun TextSlide(
+    isDialogShowing: Boolean,
+    onDialogVisibilityChange: (Boolean) -> Unit
+) {
     var verseData by remember { mutableStateOf<VerseData?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -184,6 +201,13 @@ private fun TextSlide() {
         isLoading = true
         verseData = DailyBreadFetcher().fetchVerse()
         isLoading = false
+    }
+
+    if (isDialogShowing && verseData != null) {
+        VerseDetailDialog(
+            verseData = verseData!!,
+            onDismiss = { onDialogVisibilityChange(false) }
+        )
     }
 
     Box(
@@ -200,7 +224,15 @@ private fun TextSlide() {
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.clickable {
+                if (verseData != null) {
+                    onDialogVisibilityChange(true)
+                }
+            }
+        ) {
             when {
                 isLoading -> {
                     Text(
@@ -213,7 +245,9 @@ private fun TextSlide() {
                 verseData != null -> {
                     Text(
                         text = "\"${verseData!!.text}\"",
-                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = Color.White,
                         textAlign = TextAlign.Center
                     )
@@ -233,6 +267,153 @@ private fun TextSlide() {
                     )
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun VerseDetailDialog(
+    verseData: VerseData,
+    onDismiss: () -> Unit
+) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    val fullVerseText = "\"${verseData.text}\"\n- ${verseData.reference}\n\nShared from Tehillah\nGod Bless You"
+
+    var imageUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        imageUrls = fetchImageUrls("https://raw.githubusercontent.com/El-DMark/songbook/main/verseImage.json")
+    }
+
+    val pagerState = rememberPagerState(pageCount = { imageUrls.size })
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier.padding(vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (imageUrls.isNotEmpty()) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(horizontal = 10.dp)
+                    ) { page ->
+                        Box(contentAlignment = Alignment.Center) {
+                            AsyncImage(
+                                model = imageUrls.getOrNull(page),
+                                contentDescription = "Background option",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            // --- THIS IS THE FIX ---
+                            // Add a scrim layer to darken the background image for better text contrast.
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.Black.copy(alpha = 0.4f)) // Adjust alpha as needed
+                            )
+                            // --- END OF FIX ---
+
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Text(
+                                    text = "\"${verseData.text}\"",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 4,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = verseData.reference,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        repeat(imageUrls.size) { iteration ->
+                            val color = if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else Color.LightGray
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            clipboardManager.setText(AnnotatedString(fullVerseText))
+                            onDismiss()
+                        },
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Copy")
+                    }
+
+                    Button(
+                        onClick = {
+                            val selectedImageUrl = imageUrls.getOrNull(pagerState.currentPage)
+                            if (selectedImageUrl != null) {
+                                VerseSharer.shareVerseAsImage(context, verseData, selectedImageUrl)
+                            }
+                            onDismiss()
+                        },
+                        enabled = imageUrls.isNotEmpty()
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = "Share", modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Share")
+                    }
+                }
+            }
+        }
+    }
+}
+
+private suspend fun fetchImageUrls(jsonUrl: String): List<String> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val json = URL(jsonUrl).readText()
+            val type = object : TypeToken<Map<String, List<String>>>() {}.type
+            val resultMap: Map<String, List<String>> = Gson().fromJson(json, type)
+            resultMap["imageUrls"] ?: emptyList()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 }
