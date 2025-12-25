@@ -124,13 +124,13 @@ object VerseSharer {
         val maxTextWidth = outW - sidePadding * 2
 
         // Layouts
-        val quoteText = "\"${verseData.text}\""
+        val quoteText = verseData.text
         val verseLayout = StaticLayout.Builder
             .obtain(quoteText, 0, quoteText.length, versePaint, maxTextWidth)
             .setAlignment(Layout.Alignment.ALIGN_CENTER)
             .build()
 
-        val refText = "- ${verseData.reference}"
+        val refText = verseData.reference
         val refLayout = StaticLayout.Builder
             .obtain(refText, 0, refText.length, refPaint, maxTextWidth)
             .setAlignment(Layout.Alignment.ALIGN_CENTER)

@@ -103,7 +103,7 @@ fun FullPlayer(
     LaunchedEffect(currentSong.songID) {
         if (showLyrics && matchedLyrics != null) {
             fetchedLyrics = buildString {
-                appendLine("Chorus:\n${matchedLyrics.chorus}")
+                appendLine(matchedLyrics.chorus)
                 matchedLyrics.verses.forEach { appendLine(it).appendLine() }
             }
         } else {
@@ -160,7 +160,7 @@ fun FullPlayer(
                     if (showLyrics && matchedLyrics != null) {
                         coroutineScope.launch {
                             fetchedLyrics = buildString {
-                                appendLine("Chorus:\n${matchedLyrics.chorus}")
+                                appendLine(matchedLyrics.chorus)
                                 matchedLyrics.verses.forEach { appendLine(it).appendLine() }
                             }
                         }

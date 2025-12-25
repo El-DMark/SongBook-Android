@@ -244,7 +244,7 @@ private fun TextSlide(
                 }
                 verseData != null -> {
                     Text(
-                        text = "\"${verseData!!.text}\"",
+                        text = verseData!!.text,
                         maxLines = 4,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodyMedium,
@@ -279,7 +279,7 @@ private fun VerseDetailDialog(
 ) {
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
-    val fullVerseText = "\"${verseData.text}\"\n- ${verseData.reference}\n\nShared from Tehillah\nGod Bless You"
+    val fullVerseText = "${verseData.text}\n${verseData.reference}\n\nShared from Tehillah\nGod Bless You"
 
     var imageUrls by remember { mutableStateOf<List<String>>(emptyList()) }
     LaunchedEffect(Unit) {
@@ -330,7 +330,7 @@ private fun VerseDetailDialog(
                                 modifier = Modifier.padding(16.dp)
                             ) {
                                 Text(
-                                    text = "\"${verseData.text}\"",
+                                    text = verseData.text,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color.White,
                                     textAlign = TextAlign.Center,

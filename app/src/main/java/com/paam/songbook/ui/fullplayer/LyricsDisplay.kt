@@ -12,8 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun LyricsDisplay(
@@ -23,7 +25,7 @@ fun LyricsDisplay(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.6f) // ✅ always 40% of screen height
+            .fillMaxHeight(0.6f) // ✅ always 60% of screen height
             .clip(MaterialTheme.shapes.medium)
             .background(Color.Transparent)
     ) {
@@ -32,11 +34,13 @@ fun LyricsDisplay(
             modifier = Modifier
                 .matchParentSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp)
+                .padding(14.dp)
         ) {
             Text(
                 text = fetchedLyrics ?: "Loading lyrics...",
-                style = MaterialTheme.typography.bodyLarge,
+               // style = MaterialTheme.typography.titleLarge,
+                fontSize = 24.sp, // <-- Size for the current line
+                fontWeight = FontWeight.W500,
                 color = textColor,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
