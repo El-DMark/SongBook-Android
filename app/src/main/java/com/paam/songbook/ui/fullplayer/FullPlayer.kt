@@ -6,8 +6,15 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DownloadDone
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -21,7 +28,9 @@ import androidx.palette.graphics.Palette
 import coil.compose.SubcomposeAsyncImage
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.paam.songbook.data.DownloadUtil
 import com.paam.songbook.model.Song
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // ✅ Helper to check brightness
@@ -36,6 +45,8 @@ fun FullPlayer(
     isPlaying: Boolean,
     position: Long,
     duration: Long,
+    isFavorite: Boolean,
+    onToggleFavorite: (Boolean) -> Unit,
     onCollapse: () -> Unit,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
@@ -48,6 +59,27 @@ fun FullPlayer(
     val context = LocalContext.current
     val surfaceColor = MaterialTheme.colorScheme.surface
     var dominantColor by remember { mutableStateOf(surfaceColor) }
+
+    // 🔹 Download States
+    var isDownloaded by remember(currentSong.songID) { mutableStateOf(false) }
+    var isDownloading by remember(currentSong.songID) { mutableStateOf(false) }
+    var downloadProgress by remember(currentSong.songID) { mutableStateOf(0f) }
+
+    // 🔹 1. Persistence Check: Runs when song loads
+    LaunchedEffect(currentSong.songID) {
+        if (!currentSong.url.isNullOrBlank()) {
+            isDownloaded = DownloadUtil.isDownloaded(context, currentSong.url)
+        }
+    }
+
+    // 🔹 2. Live Update Observer: Forces UI refresh when download finishes
+    LaunchedEffect(isDownloading) {
+        if (!isDownloading && !currentSong.url.isNullOrBlank()) {
+            // Small delay to allow Media3 cache index to finalize
+           // delay(500)
+            isDownloaded = DownloadUtil.isDownloaded(context, currentSong.url)
+        }
+    }
 
     // Extract dominant color from album art
     LaunchedEffect(currentSong?.albumArt) {
@@ -67,7 +99,6 @@ fun FullPlayer(
         }
     }
 
-    // ✅ Adaptive foreground tint
     val foregroundColor = if (dominantColor.isDark()) Color.White else Color.Black
 
     var sliderPosition by remember { mutableStateOf(0f) }
@@ -78,11 +109,6 @@ fun FullPlayer(
 
     val coroutineScope = rememberCoroutineScope()
     val transition = updateTransition(currentSong.title, label = "SongChange")
-
-    val albumSize by transition.animateDp(
-        transitionSpec = { tween(500) },
-        label = "AlbumSize"
-    ) { if (it.isNotEmpty()) 300.dp else 0.dp }
 
     val albumAlpha by transition.animateFloat(
         transitionSpec = { tween(500) },
@@ -99,7 +125,6 @@ fun FullPlayer(
         lyrics.find { it.id == currentSong.songID }
     }
 
-    // ✅ Auto-refresh lyrics when song changes
     LaunchedEffect(currentSong.songID) {
         if (showLyrics && matchedLyrics != null) {
             fetchedLyrics = buildString {
@@ -120,7 +145,6 @@ fun FullPlayer(
                 }
             }
     ) {
-        // 🔹 Blurred album art background
         SubcomposeAsyncImage(
             model = currentSong.albumArt,
             contentDescription = null,
@@ -130,7 +154,6 @@ fun FullPlayer(
             contentScale = ContentScale.Crop
         )
 
-        // 🔹 Gradient overlay using dominant color
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -144,10 +167,11 @@ fun FullPlayer(
                 )
         )
 
-        // 🔹 Foreground content
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -177,20 +201,72 @@ fun FullPlayer(
                 AlbumArtDisplay(
                     albumArt = currentSong.albumArt,
                     title = currentSong.title,
-                    // albumSize = albumSize,
                     albumAlpha = albumAlpha
                 )
             }
 
             Spacer(Modifier.height(30.dp))
 
-            SongInfoSection(
-                title = currentSong.title,
-                artist = currentSong.artist,
-                textColor = foregroundColor
-            )
+            // 🔹 ICONS AND SONG INFO ROW
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // 1. Favorite Button (Left)
+                IconButton(onClick = { onToggleFavorite(isFavorite) }) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (isFavorite) Color(0xFFE91E63) else foregroundColor,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
 
-            Spacer(Modifier.height(15.dp))
+                // 2. Song Info (Center - Flexible)
+                Box(modifier = Modifier.weight(1f)) {
+                    SongInfoSection(
+                        title = currentSong.title,
+                        artist = currentSong.artist,
+                        textColor = foregroundColor,
+                        isDownloaded = isDownloaded,
+                        isDownloading = isDownloading,
+                        progress = downloadProgress,
+                        onDownloadClick = {
+                            coroutineScope.launch {
+                                if (currentSong.url.isNullOrBlank() || isDownloading) return@launch
+
+                                if (isDownloaded) {
+                                    // 🔹 1. REMOVE DOWNLOAD
+                                    DownloadUtil.removeDownload(context, currentSong.url)
+                                    // Small delay to let file system reflect change
+                                    delay(300)
+                                    isDownloaded = false
+                                } else {
+                                    // 🔹 2. START DOWNLOAD
+                                    isDownloading = true
+                                    downloadProgress = 0f
+
+                                    DownloadUtil.downloadMedia(context, currentSong.url) { progress ->
+                                        downloadProgress = (progress / 100f).toFloat()
+                                    }
+
+                                    // Optional: Wait a moment at 100% so the user sees completion
+                                    //delay(500)
+
+                                    // Verify status before flipping the UI
+                                    val verified = DownloadUtil.isDownloaded(context, currentSong.url)
+                                    isDownloaded = verified
+                                    isDownloading = false
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+            Spacer(Modifier.height(5.dp))
 
             SeekBarWithPreview(
                 position = position,

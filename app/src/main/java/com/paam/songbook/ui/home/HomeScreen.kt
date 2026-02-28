@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -12,13 +13,15 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
+import com.paam.songbook.ui.songs.FavoriteSection
 import com.paam.songbook.ui.songs.FeaturedSongCard
 import com.paam.songbook.ui.songs.MostListenedSection // 👈 Import new composable
 import com.paam.songbook.ui.songs.RecentlyAddedSection // 👈 Import new composable
-
+import com.paam.songbook.data.local.dao.entity.FavoriteSong
 @Composable
 fun HomeScreen(
     songs: List<Song>,
+    favs :List<FavoriteSong>,
     navController: NavController,
     controller: MediaController,
     modifier: Modifier = Modifier,
@@ -35,7 +38,10 @@ fun HomeScreen(
     } else {
         songs.getOrNull(1)
     }
-
+    val favoriteSongsList = remember(favs, songs) {
+        val favoriteIds = favs.map { it.songId }
+        songs.filter { it.songID.toString() in favoriteIds }
+    }
 
     Column(
         modifier = modifier
@@ -47,7 +53,7 @@ fun HomeScreen(
                 )
             )
             .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp) // Use Arrangement for consistent spacing
+        verticalArrangement = Arrangement.spacedBy(18.dp) // Use Arrangement for consistent spacing
     ) {
         // Spacer(modifier = Modifier.height(16.dp))
 
@@ -56,6 +62,12 @@ fun HomeScreen(
             FeaturedSongCard(song = featuredSong,controller)
         }
 
+        if (!favoriteSongsList.isEmpty()) {
+            FavoriteSection(
+                songs = favoriteSongsList,
+                controller = controller
+            )
+        }
         // 🔹 Recently Added (Using the new composable)
         RecentlyAddedSection(
             songs = songs,

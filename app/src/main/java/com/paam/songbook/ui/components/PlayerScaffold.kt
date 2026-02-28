@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +25,9 @@ fun PlayerScaffold(
     isPlaying: Boolean,
     position: Long,
     duration: Long,
+    // 🔹 Added parameters to support Favorites implementation
+    isFavorite: Boolean = false,
+    onToggleFavorite: (Boolean) -> Unit = {},
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -45,11 +49,11 @@ fun PlayerScaffold(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(WindowInsets.navigationBars.asPaddingValues())
+        //  .padding(WindowInsets.navigationBars.asPaddingValues())
     ) {
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
-            sheetPeekHeight = if (currentSong == null) 0.dp else 72.dp, // collapse when no song
+            sheetPeekHeight = if (currentSong == null) 0.dp else 116.dp, // collapse when no song
             sheetDragHandle = {},
             sheetContainerColor = Color.Transparent,   // no background behind mini player
             sheetContent = {
@@ -97,6 +101,9 @@ fun PlayerScaffold(
                                     isPlaying = isPlaying,
                                     position = position,
                                     duration = duration,
+                                    // 🔹 Passing favorite state to FullPlayer
+                                    isFavorite = isFavorite,
+                                    onToggleFavorite = onToggleFavorite,
                                     onCollapse = { scope.launch { scaffoldState.bottomSheetState.partialExpand() } },
                                     onPlayPause = onPlayPause,
                                     onNext = onNext,

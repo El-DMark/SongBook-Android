@@ -52,3 +52,20 @@ fun MostListenedSection(
         )
     }
 }
+
+@Composable
+fun FavoriteSection(
+    songs: List<Song>,
+    controller: MediaController,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text("My Inspirations", style = MaterialTheme.typography.titleMedium, color = Color.White)
+        Spacer(modifier = Modifier.height(8.dp))
+        SongCarousel(
+            // Business logic: "Most Listened" are the last 6 songs, reversed
+            songs = songs.reversed().take(7),
+            controller = controller
+        )
+    }
+}

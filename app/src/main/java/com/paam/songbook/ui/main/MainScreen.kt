@@ -1,7 +1,6 @@
 package com.paam.songbook.ui.main
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -10,6 +9,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -28,10 +28,9 @@ import com.paam.songbook.model.Playlist
 import com.paam.songbook.model.Song
 import com.paam.songbook.ui.artists.ArtistListScreen
 import com.paam.songbook.ui.home.HomeScreen
-import com.paam.songbook.ui.playlistsimport.PlaylistScreen // Corrected import
+import com.paam.songbook.ui.playlists.PlaylistScreen
 import com.paam.songbook.ui.songs.SongListScreen
-import androidx.compose.material.icons.filled.Info
-import kotlin.Int
+import com.paam.songbook.data.local.dao.entity.FavoriteSong
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -40,13 +39,19 @@ fun MainScreen(
     playlists: List<Playlist>,
     navController: NavController,
     controller: MediaController,
-    featuredsongid: Int?
+    featuredsongid: Int?,
+    favs: List<FavoriteSong>,
+    onToggleFavorite: (Song) -> Unit // 🔹 Added toggle callback
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
 
-    // When the user switches tabs, exit search mode and clear the query
+    // 🔹 Convert the list of FavoriteSong entities to a Set of Long IDs for fast lookup
+    val favoriteIds = remember(favs) {
+        favs.map { it.songId.toLong() }.toSet()
+    }
+
     LaunchedEffect(pagerState.currentPage) {
         isSearching = false
         query = ""
@@ -74,7 +79,6 @@ fun MainScreen(
                                 value = query,
                                 onValueChange = { query = it },
                                 placeholder = {
-                                    // 4. Dynamic placeholder text
                                     val placeholderText = when (pagerState.currentPage) {
                                         1 -> "Search hymns..."
                                         2 -> "Search saints..."
@@ -88,7 +92,6 @@ fun MainScreen(
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
                                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                // 6. FIX API CALL for TextField colors
                                 colors = TextFieldDefaults.textFieldColors(
                                     containerColor = Color.Transparent,
                                     cursorColor = Color.White,
@@ -110,13 +113,12 @@ fun MainScreen(
                                 1 -> "Hymns"
                                 2 -> "Saints"
                                 3 -> "Playlists"
-                                else -> "Tehillah" // Fallback
+                                else -> "Tehillah"
                             }
                             Text(title, color = Color.White, fontFamily = Cursive, fontSize = 42.sp)
                         }
                     },
                     actions = {
-                        // 3. Hide Search on Home Screen (Page 0)
                         if (!isSearching && pagerState.currentPage != 0) {
                             IconButton(onClick = { isSearching = true }) {
                                 Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
@@ -126,7 +128,6 @@ fun MainScreen(
                             Icon(Icons.Default.Info, contentDescription = "About", tint = Color.White)
                         }
                     },
-                    // 6. FIX API CALL for TopAppBar colors
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
             }
@@ -140,18 +141,20 @@ fun MainScreen(
                     state = pagerState,
                     flingBehavior = PagerDefaults.flingBehavior(state = pagerState)
                 ) { page ->
-                    // 1. Context-aware filtering
                     when (page) {
                         0 -> HomeScreen(
                             songs = songs,
                             navController = navController,
                             controller = controller,
-                            featuredsongid = featuredsongid
+                            featuredsongid = featuredsongid,
+                            favs = favs
                         )
                         1 -> {
                             val filteredSongs = songs.filter { it.matchesQuery(query) }
                             SongListScreen(
                                 songs = filteredSongs,
+                                favoriteIds = favoriteIds, // 🔹 Pass favorite IDs
+                                onToggleFavorite = onToggleFavorite, // 🔹 Pass toggle logic
                                 onSongSelected = { song ->
                                     val mediaItems = filteredSongs.map { it.toMediaItem() }
                                     val startIndex = filteredSongs.indexOf(song).coerceAtLeast(0)
@@ -163,14 +166,12 @@ fun MainScreen(
                             )
                         }
                         2 -> ArtistListScreen(
-                            // ArtistListScreen gets a filtered list of songs to derive the artists
                             songs = songs.filter { it.matchesQuery(query) },
                             onArtistSelected = { artistName ->
                                 navController.navigate("artist/$artistName")
                             }
                         )
                         3 -> PlaylistScreen(
-                            // PlaylistScreen gets a filtered list of playlists
                             playlists = playlists.filter { it.matchesQuery(query) },
                             onPlaylistSelected = { playlist ->
                                 navController.navigate("playlist/${playlist.id}")
@@ -183,17 +184,14 @@ fun MainScreen(
     }
 }
 
-// Existing filter function for Songs (used for Hymns and Saints)
 private fun Song.matchesQuery(query: String): Boolean {
     return query.isBlank() ||
             title.contains(query, ignoreCase = true) ||
             artist.contains(query, ignoreCase = true)
 }
 
-// 2. New filter function for Playlists
 private fun Playlist.matchesQuery(query: String): Boolean {
     return query.isBlank() ||
             name.contains(query, ignoreCase = true) ||
             description?.contains(query, ignoreCase = true) == true
 }
-//Mark David

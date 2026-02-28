@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
@@ -25,6 +27,9 @@ fun PlayerHost(
     songs: List<Song>,
     lyrics: List<Lyrics>,
     playlists: List<Playlist>,
+    // 🔹 Added parameters to support Favorites implementation
+    isFavorite: Boolean = false,
+    onToggleFavorite: (Boolean) -> Unit = {},
     content: @Composable () -> Unit
 ) {
     var currentSong by remember { mutableStateOf<Song?>(null) }
@@ -38,12 +43,6 @@ fun PlayerHost(
             override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
                 currentSong = item?.toSong()
                 duration = controller.duration.coerceAtLeast(0L)
-
-                currentSong?.let {
-                    val json = Gson().toJson(it)
-                    Log.d("CurrentSongJSON", json)
-                    Log.d("LyricsDebug", "Lyrics: ${it.lyrics}")
-                }
             }
 
             override fun onIsPlayingChanged(isPlayingNow: Boolean) {
@@ -56,12 +55,6 @@ fun PlayerHost(
         currentSong = controller.currentMediaItem?.toSong()
         isPlaying = controller.isPlaying
         duration = controller.duration.coerceAtLeast(0L)
-
-        currentSong?.let {
-            val json = Gson().toJson(it)
-            Log.d("CurrentSongJSON", json)
-            Log.d("LyricsDebug", "Lyrics: ${it.lyrics}")
-        }
 
         onDispose { controller.removeListener(listener) }
     }
@@ -81,6 +74,9 @@ fun PlayerHost(
         isPlaying = isPlaying,
         position = position,
         duration = duration,
+        // 🔹 Pass the favorite states down to the Scaffold
+        isFavorite = isFavorite,
+        onToggleFavorite = onToggleFavorite,
         onPlayPause = {
             if (controller.isPlaying) controller.pause() else controller.play()
         },

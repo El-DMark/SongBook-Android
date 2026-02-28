@@ -10,7 +10,8 @@ data class Song(
     val albumArt: String,
     val lyrics: String?,
     val Language: String,      // e.g. "Hindi", "English"
-    val timestamp: String
+    val timestamp: String,
+    var isDownloaded: Boolean = false
 )
 
 

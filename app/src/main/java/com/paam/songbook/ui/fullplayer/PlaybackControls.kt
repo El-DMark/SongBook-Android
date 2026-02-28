@@ -35,11 +35,11 @@ fun PlaybackControls(
             Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", tint = tint)
         }
         Box(modifier = Modifier.size(72.dp)) {
-            IconButton(onClick = onPlayPause, modifier = Modifier.size(72.dp)) {
+            IconButton(onClick = onPlayPause, modifier = Modifier.size(62.dp)) {
                 Icon(
                     if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = "Play/Pause",
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(68.dp),
                     tint = tint
                 )
             }

@@ -1,14 +1,13 @@
 package com.paam.songbook.ui.artists
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
@@ -20,11 +19,14 @@ import com.paam.songbook.ui.songs.SongListScreen
 fun ArtistDetailScreen(
     artistName: String,
     allSongs: List<Song>,
+    favoriteIds: Set<Long>,
     navController: NavController,
-    mediaController: MediaController
+    mediaController: MediaController,
+    onToggleFavorite: (Song) -> Unit
 ) {
-    // Filter the songs to get only those by the selected artist
-    val songsByArtist = allSongs.filter { it.artist == artistName }
+    val songsByArtist = remember(artistName, allSongs) {
+        allSongs.filter { it.artist == artistName }
+    }
 
     Scaffold(
         topBar = {
@@ -32,28 +34,21 @@ fun ArtistDetailScreen(
                 title = { Text(artistName, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = Color(0xFF0F2027) // Use a consistent background
+        containerColor = Color(0xFF0F2027)
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
-            // Reuse the existing SongListScreen to display the filtered songs
+        Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            // 🔹 This will now be in sync because SongListScreen (which we fixed)
+            // is being reused here!
             SongListScreen(
                 songs = songsByArtist,
+                favoriteIds = favoriteIds,
+                onToggleFavorite = onToggleFavorite,
                 onSongSelected = { selectedSong ->
                     val mediaItems = songsByArtist.map { it.toMediaItem() }
                     val startIndex = songsByArtist.indexOf(selectedSong).coerceAtLeast(0)
