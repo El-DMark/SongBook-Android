@@ -42,7 +42,7 @@ fun SongInfoSection(
                     .fillMaxWidth()
                     .basicMarquee(),
                 // 🔹 Change to TextAlign.Start for better balance with the icon on the right
-                textAlign = TextAlign.Start,
+                textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Visible
             )
@@ -53,7 +53,7 @@ fun SongInfoSection(
                 color = textColor.copy(alpha = 0.7f),
                 modifier = Modifier.fillMaxWidth(),
                 // 🔹 Change to TextAlign.Start
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Center
             )
         }
 

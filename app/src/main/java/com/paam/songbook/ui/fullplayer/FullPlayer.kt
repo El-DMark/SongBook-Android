@@ -254,7 +254,7 @@ fun FullPlayer(
                                     }
 
                                     // Optional: Wait a moment at 100% so the user sees completion
-                                    //delay(500)
+                                    //+ delay(500)
 
                                     // Verify status before flipping the UI
                                     val verified = DownloadUtil.isDownloaded(context, currentSong.url)
