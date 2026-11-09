@@ -46,7 +46,7 @@ fun MiniPlayer(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF0D1B2A).copy(alpha = 0.95f)) // A dark, slightly translucent color
+            .background(MaterialTheme.colorScheme.surfaceVariant) // Replaced hardcoded dark color
             .clickable { onExpand() }
     ) {
         Column {
@@ -73,24 +73,23 @@ fun MiniPlayer(
                         currentSong.title,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
-                        color = Color.White
-                        // Explicitly set text color to white
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         currentSong.artist,
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
-                        color = Color.White.copy(alpha = 0.7f) // Lighter white for subtitle
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                // Set icon tints to white for visibility
+                // Set icon tints to surface variant on text
                 IconButton(onClick = onPlayPause) {
                     Crossfade(targetState = isPlaying, label = "playPauseAnim") { playing ->
                         Icon(
                             if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = "Play/Pause",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -98,7 +97,7 @@ fun MiniPlayer(
                     Icon(
                         Icons.Default.SkipNext,
                         contentDescription = "Next",
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -110,7 +109,7 @@ fun MiniPlayer(
                         .fillMaxWidth()
                         .height(4.dp),
                     color = MaterialTheme.colorScheme.primary,
-                    trackColor = Color.White.copy(alpha = 0.2f)
+                    trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                 )
             }
         }

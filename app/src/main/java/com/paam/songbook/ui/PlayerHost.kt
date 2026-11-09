@@ -36,17 +36,49 @@ fun PlayerHost(
     var isPlaying by remember { mutableStateOf(false) }
     var duration by remember { mutableStateOf(0L) }
     var position by remember { mutableStateOf(0L) }
+    var shuffleModeEnabled by remember { mutableStateOf(controller.shuffleModeEnabled) }
+    var repeatMode by remember { mutableStateOf(controller.repeatMode) }
+    
+    // 🔹 Advanced Sleep Timer State
+    var sleepTimerEnd by remember { mutableStateOf<Long?>(null) }
+    var stopAfterCurrentTrack by remember { mutableStateOf(false) }
+
+    // 🔹 Handle Sleep Timer Countdown
+    LaunchedEffect(sleepTimerEnd) {
+        if (sleepTimerEnd != null) {
+            while (true) {
+                val remaining = sleepTimerEnd!! - System.currentTimeMillis()
+                if (remaining <= 0) {
+                    controller.pause()
+                    sleepTimerEnd = null
+                    break
+                }
+                delay(1000)
+            }
+        }
+    }
 
     // Listen for song changes and playback state
     DisposableEffect(controller) {
         val listener = object : Player.Listener {
             override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
+                if (stopAfterCurrentTrack && reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                    controller.pause()
+                    stopAfterCurrentTrack = false
+                }
                 currentSong = item?.toSong()
                 duration = controller.duration.coerceAtLeast(0L)
             }
 
             override fun onIsPlayingChanged(isPlayingNow: Boolean) {
                 isPlaying = isPlayingNow
+            }
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabledChanged: Boolean) {
+                shuffleModeEnabled = shuffleModeEnabledChanged
+            }
+
+            override fun onRepeatModeChanged(repeatModeChanged: Int) {
+                repeatMode = repeatModeChanged
             }
         }
         controller.addListener(listener)
@@ -55,6 +87,8 @@ fun PlayerHost(
         currentSong = controller.currentMediaItem?.toSong()
         isPlaying = controller.isPlaying
         duration = controller.duration.coerceAtLeast(0L)
+        shuffleModeEnabled = controller.shuffleModeEnabled
+        repeatMode = controller.repeatMode
 
         onDispose { controller.removeListener(listener) }
     }
@@ -83,6 +117,26 @@ fun PlayerHost(
         onNext = { controller.seekToNext() },
         onPrevious = { controller.seekToPrevious() },
         onSeek = { seekPos -> controller.seekTo(seekPos) },
+        shuffleModeEnabled = shuffleModeEnabled,
+        repeatMode = repeatMode,
+        onToggleShuffle = { controller.shuffleModeEnabled = !controller.shuffleModeEnabled },
+        onToggleRepeat = { 
+            controller.repeatMode = when (controller.repeatMode) {
+                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                else -> Player.REPEAT_MODE_OFF
+            }
+        },
+        sleepTimerEnd = sleepTimerEnd,
+        stopAfterCurrentTrack = stopAfterCurrentTrack,
+        onSetSleepTimer = { minutes ->
+            if (minutes == 0) {
+                sleepTimerEnd = null
+            } else {
+                sleepTimerEnd = System.currentTimeMillis() + (minutes * 60 * 1000L)
+            }
+        },
+        onSetStopAfterCurrentTrack = { stopAfterCurrentTrack = it },
         lyrics = lyrics
     ) {
         Box(modifier = Modifier.padding(bottom = 0.dp)) {

@@ -73,83 +73,46 @@ private fun SongCarouselItem(
     song: Song,
     onSongClicked: () -> Unit
 ) {
-    val cardShape = RoundedCornerShape(12.dp) // Define shape once for reuse
-    Box(
+    Column(
         modifier = Modifier
-            // --- 1. SIZE REDUCED ---
-            .width(120.dp)
-            .height(140.dp)
-            .clip(cardShape) // Clip the content inside
-            // --- 2. BORDER ADDED ---
-            // Add a border that follows the clipped shape
-            .border(1.dp, Color.White.copy(alpha = 0.5f), cardShape)
+            .width(140.dp)
             .clickable { onSongClicked() }
-            .background(MaterialTheme.colorScheme.surfaceVariant), // Fallback color
-        contentAlignment = Alignment.BottomStart // Aligns text to the bottom-left
     ) {
-        //  Album Art as Background
-        AsyncImage(
-            model = song.albumArt,
-            contentDescription = song.title,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
-        //  Play Icon (Center with transparency)
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    // --- 3. ICON SIZE REDUCED ---
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.5f)), // Semi-transparent background
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = "Play",
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-        }
-
-        //  Gradient Overlay for text readability
+        // 1. Album Art
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.9f)),
-                        startY = 250f // Adjusted gradient start
-                    )
-                )
-        )
-
-        //  Song Name and Artist at the bottom
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp), // Slightly reduced padding
-            verticalArrangement = Arrangement.Bottom // Pushes the text to the bottom
+                .size(140.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            Text(
-                text = song.title,
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = song.artist,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), // Made artist text smaller
-                color = Color.White.copy(alpha = 0.8f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+            AsyncImage(
+                model = song.albumArt,
+                contentDescription = song.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 2. Song Title
+        Text(
+            text = song.title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        
+        Spacer(modifier = Modifier.height(2.dp))
+        
+        // 3. Artist Text
+        Text(
+            text = song.artist,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

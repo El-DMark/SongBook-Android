@@ -1,4 +1,149 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-  
-</selector>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="100dp"
+            android:height="100dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+
+            <group
+                android:name="floating_composition"
+                android:pivotX="12"
+                android:pivotY="12">
+
+                <path
+                    android:name="soft_cloud_back"
+                    android:fillColor="#A0FFFFFF"
+                    android:pathData="M1.3,16.2C0.1,16.2 -0.8,15.3 -0.8,14.2C-0.8,13.1 0.1,12.2 1.3,12.2C1.4,12.2 1.5,12.2 1.6,12.2C2.1,10.9 3.4,10 4.8,10C6.6,10 8.1,11.5 8.1,13.3C8.1,13.5 8.1,13.7 8.1,13.9C8.7,13.5 9.3,13.3 10,13.3C11.7,13.3 13.1,14.7 13.1,16.4C13.1,18.1 11.7,19.5 10,19.5L4.8,19.5C4.6,19.5 4.4,19.5 4.3,19.5C3.9,18.5 2.9,17.8 1.8,17.8C1.6,17.8 1.4,17.8 1.3,17.8L1.3,16.2Z" />
+                <path
+                    android:name="soft_cloud_front"
+                    android:fillColor="#4A90E2"
+                    android:pathData="M23.35,10.04C22.67,6.59 19.64,4 16,4C13.11,4 10.6,5.64 9.36,8.04C6.34,8.36 4,10.91 4,14C4,17.31 6.69,20 10,20L23,20C25.76,20 28,17.76 28,15C28,12.36 25.95,10.22 23.35,10.04Z" />
+
+                <group
+                    android:name="harp_group"
+                    android:pivotX="16"
+                    android:pivotY="12.5"
+                    android:translateX="0"
+                    android:translateY="1.5"> <path
+                    android:name="harp_frame"
+                    android:fillColor="#E4C76D"
+                    android:pathData="M16,4.5C16,4.5 14.8,5 14.2,6C13.6,7 13.8,9 13.8,10.5C13.8,12 14.2,14.5 15,16C15.8,17.5 16.8,18 17.5,18C18.2,18 19.2,17.5 20,16C20.8,14.5 21.2,12 21.2,10.5C21.2,9 21.4,7 20.8,6C20.2,5 19,4.5 19,4.5" />
+                    <path
+                        android:name="harp_string_1"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M15.5,10.5L15.5,15" />
+                    <path
+                        android:name="harp_string_2"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M16.5,9.5L16.5,16" />
+                    <path
+                        android:name="harp_string_3"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M17.5,8.5L17.5,17" />
+                    <path
+                        android:name="harp_string_4"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M18.5,7.5L18.5,16.5" />
+                    <path
+                        android:name="harp_string_5"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M19.5,6.5L19.5,15.5" />
+                </group>
+
+                <group android:name="text_group" android:pivotX="16" android:pivotY="22">
+                    <path
+                        android:name="text_t"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M7.7,19.3L8.6,19.3L8.6,22H7.7L7.7,19.3ZM6.5,18.5L9.8,18.5V19.3L6.5,19.3V18.5Z" />
+                    <path
+                        android:name="text_e"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M10.1,18.5H12.9V19.3H11V20H12.7V20.8H11V21.1H12.9V22H10.1V18.5Z" />
+                    <path
+                        android:name="text_h"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M13.2,18.5H14.1V19.9H15.2V18.5H16.1V22H15.2V20.7H14.1V22H13.2V18.5Z" />
+                    <path
+                        android:name="text_i"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M16.5,18.5H17.4V22H16.5V18.5Z" />
+                    <path
+                        android:name="text_l1"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M17.8,18.5H18.7V21.1H19.9V22H17.8V18.5Z" />
+                    <path
+                        android:name="text_l2"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M20.3,18.5H21.2V21.1H22.4V22H20.3V18.5Z" />
+                    <path
+                        android:name="text_a"
+                        android:fillColor="#E4C76D"
+                        android:pathData="M22.8,18.5H23.7L25.3,22H24.3L23.9,21.1H23L22.6,22H21.6L22.8,18.5ZM23.2,20.4L23.7,20.4L23.45,19.3L23.2,20.4Z" />
+                </group>
+
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <target android:name="floating_composition">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="translateY"
+                android:duration="4000"
+                android:valueFrom="-1.5"
+                android:valueTo="1.5"
+                android:valueType="floatType"
+                android:repeatCount="infinite"
+                android:repeatMode="reverse"
+                android:interpolator="@android:anim/accelerate_decelerate_interpolator" />
+        </aapt:attr>
+    </target>
+
+    <target android:name="harp_group">
+        <aapt:attr name="android:animation">
+            <set android:ordering="together">
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:duration="1500"
+                    android:valueFrom="0.98"
+                    android:valueTo="1.02"
+                    android:valueType="floatType"
+                    android:repeatCount="infinite"
+                    android:repeatMode="reverse" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:duration="1500"
+                    android:valueFrom="0.98"
+                    android:valueTo="1.02"
+                    android:valueType="floatType"
+                    android:repeatCount="infinite"
+                    android:repeatMode="reverse" />
+                <objectAnimator
+                    android:propertyName="rotation"
+                    android:duration="750"
+                    android:valueFrom="-0.5"
+                    android:valueTo="0.5"
+                    android:valueType="floatType"
+                    android:repeatCount="infinite"
+                    android:repeatMode="reverse" />
+            </set>
+        </aapt:attr>
+    </target>
+
+    <target android:name="text_group">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="scaleX"
+                android:duration="1500"
+                android:valueFrom="0.99"
+                android:valueTo="1.01"
+                android:valueType="floatType"
+                android:repeatCount="infinite"
+                android:repeatMode="reverse" />
+        </aapt:attr>
+    </target>
+
+</animated-vector>

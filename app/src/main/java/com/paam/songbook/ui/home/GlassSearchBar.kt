@@ -28,25 +28,25 @@ fun GlassSearchBar(
         modifier = Modifier
             .fillMaxWidth()
             // 🔹 Blur only the background container
-            .background(Color.White.copy(alpha = 0.1f), shape = MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = MaterialTheme.shapes.medium)
            // .blur(16.dp) // apply blur to the background, not the text
     ) {
         TextField(
             value = query,
             onValueChange = onQueryChange,
-            placeholder = { Text(placeholder, color = Color.LightGray) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White) },
+            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                cursorColor = Color.White,
-                focusedPlaceholderColor = Color.LightGray,
-                unfocusedPlaceholderColor = Color.LightGray,
-                focusedLeadingIconColor = Color.White,
-                unfocusedLeadingIconColor = Color.LightGray
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
     }

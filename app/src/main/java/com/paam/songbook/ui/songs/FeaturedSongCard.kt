@@ -25,11 +25,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.Icon
+
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,6 +58,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.media3.session.MediaController
 import coil.compose.AsyncImage
@@ -69,17 +77,18 @@ import java.net.URL
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FeaturedSongCard(song: Song, controller: MediaController?) {
-    val pageCount = 2
+fun FeaturedSongCard(songs: List<Song>, controller: MediaController?) {
+    val featuredSongs = songs.take(10)
+    if (featuredSongs.isEmpty()) return
+
+    val pageCount = featuredSongs.size
     val pagerState = rememberPagerState(pageCount = { pageCount })
 
-    var isVerseDialogShowing by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isVerseDialogShowing) {
-        if (!isVerseDialogShowing) {
-            while (true) {
-                delay(5000)
-                yield()
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            yield()
+            if (pageCount > 0) {
                 val nextPage = (pagerState.currentPage + 1) % pageCount
                 pagerState.animateScrollToPage(nextPage)
             }
@@ -93,37 +102,33 @@ fun FeaturedSongCard(song: Song, controller: MediaController?) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp)
-                .clip(RoundedCornerShape(16.dp))
+                .height(280.dp) // Massively increased height for immersive card
+                .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { page ->
-                when (page) {
-                    0 -> ImageSlide(song = song, controller = controller)
-                    1 -> TextSlide(
-                        isDialogShowing = isVerseDialogShowing,
-                        onDialogVisibilityChange = { isVerseDialogShowing = it }
-                    )
-                }
+                ImageSlide(song = featuredSongs[page], controller = controller)
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            repeat(pageCount) { iteration ->
-                val color = if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else Color.LightGray.copy(alpha = 0.5f)
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                )
+        if (pageCount > 1) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                repeat(pageCount) { iteration ->
+                    val color = if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else Color.LightGray.copy(alpha = 0.5f)
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                    )
+                }
             }
         }
     }
@@ -157,62 +162,150 @@ private fun ImageSlide(song: Song, controller: MediaController?) {
             contentScale = ContentScale.Crop
         )
 
+        // Stronger gradient to ensure white text pops like in the sample
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.8f)
+                            Color.Black.copy(alpha = 0.2f),
+                            Color.Black.copy(alpha = 0.85f),
+                            Color.Black.copy(alpha = 0.95f)
                         ),
-                        startY = 80f
+                        startY = 0f
                     )
                 )
         )
 
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth()
         ) {
+            // Overline Text with Yellow Accent Line
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .width(20.dp)
+                        .height(2.dp)
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = "FEATURED SONG",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Massive Title Text
             Text(
                 text = song.title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.White
+                style = MaterialTheme.typography.headlineLarge,
+                color = Color.White,
+                lineHeight = 44.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Subtitle Description
             Text(
-                text = song.artist,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.8f)
+                text = "A handpicked song to bring you closer to God, by ${song.artist}.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.7f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Pill Play Button & Secondary Button
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        controller?.let {
+                            it.clearMediaItems()
+                            it.addMediaItem(song.toMediaItem())
+                            it.prepare()
+                            it.play()
+                        }
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = RoundedCornerShape(50),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.PlayArrow,
+                        contentDescription = "Play",
+                        tint = Color.Black
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Play song",
+                        color = Color.Black,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+
+                Spacer(Modifier.width(16.dp))
+
+                androidx.compose.material3.OutlinedIconButton(
+                    onClick = { /* favorite logic */ },
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                    shape = CircleShape,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = Color.White
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun TextSlide(
-    isDialogShowing: Boolean,
-    onDialogVisibilityChange: (Boolean) -> Unit
+fun DailyVerseCard(
+    modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    var isDialogShowing by remember { mutableStateOf(false) }
     var verseData by remember { mutableStateOf<VerseData?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         isLoading = true
-        verseData = DailyBreadFetcher().fetchVerse()
+        verseData = DailyBreadFetcher(context).fetchVerse()
         isLoading = false
     }
 
     if (isDialogShowing && verseData != null) {
         VerseDetailDialog(
             verseData = verseData!!,
-            onDismiss = { onDialogVisibilityChange(false) }
+            onDismiss = { isDialogShowing = false }
         )
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = modifier
+            .clip(RoundedCornerShape(24.dp))
+            .clickable {
+                if (verseData != null) {
+                    isDialogShowing = true
+                }
+            }
             .background(
                 Brush.radialGradient(
                     colors = listOf(
@@ -227,11 +320,7 @@ private fun TextSlide(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.clickable {
-                if (verseData != null) {
-                    onDialogVisibilityChange(true)
-                }
-            }
+            modifier = Modifier.fillMaxSize()
         ) {
             when {
                 isLoading -> {

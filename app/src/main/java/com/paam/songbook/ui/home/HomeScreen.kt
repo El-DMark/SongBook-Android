@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -14,9 +15,9 @@ import androidx.media3.session.MediaController
 import androidx.navigation.NavController
 import com.paam.songbook.model.Song
 import com.paam.songbook.ui.songs.FavoriteSection
-import com.paam.songbook.ui.songs.FeaturedSongCard
-import com.paam.songbook.ui.songs.MostListenedSection // 👈 Import new composable
-import com.paam.songbook.ui.songs.RecentlyAddedSection // 👈 Import new composable
+import com.paam.songbook.ui.songs.DailyVerseCard
+import com.paam.songbook.ui.songs.MostListenedSection
+import com.paam.songbook.ui.songs.RecentlyAddedSection
 import com.paam.songbook.data.local.dao.entity.FavoriteSong
 @Composable
 fun HomeScreen(
@@ -25,7 +26,8 @@ fun HomeScreen(
     navController: NavController,
     controller: MediaController,
     modifier: Modifier = Modifier,
-    featuredsongid: Int?
+    featuredsongid: Int?,
+    topListenedSongs: List<Song> = emptyList()
 ) {
     val scrollState = rememberScrollState()
 
@@ -47,20 +49,12 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0F2027), Color(0xFF2C5364))
-                )
-            )
+            .background(MaterialTheme.colorScheme.background)
             .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp) // Use Arrangement for consistent spacing
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        // Spacer(modifier = Modifier.height(16.dp))
-
-        // 🔹 Featured Song
-        if (featuredSong != null) {
-            FeaturedSongCard(song = featuredSong,controller)
-        }
+        // 🔹 Daily Verse Card
+        DailyVerseCard(modifier = Modifier.fillMaxWidth().height(220.dp))
 
         if (!favoriteSongsList.isEmpty()) {
             FavoriteSection(
@@ -68,18 +62,24 @@ fun HomeScreen(
                 controller = controller
             )
         }
-        // 🔹 Recently Added (Using the new composable)
+        // 🔹 Recently Added
         RecentlyAddedSection(
             songs = songs,
             controller = controller
         )
 
-        // 🔹 Most Listened (Using the new composable)
-        MostListenedSection(
-            songs = songs,
-            controller = controller
-        )
-
-        // Spacer(modifier = Modifier.height(24.dp))
+        // 🔹 Most Listened
+        if (topListenedSongs.isNotEmpty()) {
+            MostListenedSection(
+                songs = topListenedSongs,
+                controller = controller
+            )
+        } else {
+            // Fallback for brand new users with no play history yet: Show random songs
+            MostListenedSection(
+                songs = songs.shuffled(),
+                controller = controller
+            )
+        }
     }
 }

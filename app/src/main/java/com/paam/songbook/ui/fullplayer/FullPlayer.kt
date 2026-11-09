@@ -2,6 +2,7 @@ package com.paam.songbook.ui.fullplayer
 
 import Lyrics
 import android.graphics.drawable.BitmapDrawable
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -17,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.Intent
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -28,10 +30,19 @@ import androidx.palette.graphics.Palette
 import coil.compose.SubcomposeAsyncImage
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.paam.songbook.R
 import com.paam.songbook.data.DownloadUtil
 import com.paam.songbook.model.Song
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.net.Uri
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import java.io.File
+import java.io.FileOutputStream
 
 // ✅ Helper to check brightness
 fun Color.isDark(): Boolean {
@@ -52,6 +63,14 @@ fun FullPlayer(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onSeek: (Long) -> Unit,
+    shuffleModeEnabled: Boolean = false,
+    repeatMode: Int = 0,
+    onToggleShuffle: () -> Unit = {},
+    onToggleRepeat: () -> Unit = {},
+    sleepTimerEnd: Long? = null,
+    stopAfterCurrentTrack: Boolean = false,
+    onSetSleepTimer: (Int) -> Unit = {},
+    onSetStopAfterCurrentTrack: (Boolean) -> Unit = {},
     lyrics: List<Lyrics>
 ) {
     if (currentSong == null) return
@@ -190,19 +209,89 @@ fun FullPlayer(
                         }
                     }
                 },
-                tint = foregroundColor
+                sleepTimerEnd = sleepTimerEnd,
+                stopAfterCurrentTrack = stopAfterCurrentTrack,
+                onSetSleepTimer = onSetSleepTimer,
+                onSetStopAfterCurrentTrack = onSetStopAfterCurrentTrack,
+                tint = foregroundColor,
+                onShare = {
+                    coroutineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        try {
+                            // 1. Create directory in cache
+                            val imagePath = File(context.cacheDir, "images")
+                            imagePath.mkdirs()
+                            
+                            // 2. Create target file
+                            val newFile = File(imagePath, "tehillah_logo.png")
+                            
+                            // 3. Decode the provided PNG logo into Bitmap
+                            val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.tehillah_share_logo)
+                            if (bitmap != null) {
+                                val stream = FileOutputStream(newFile)
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                                stream.close()
+                            } else {
+                                // Fallback to adaptive icon logic if the PNG is missing
+                                val drawable = ContextCompat.getDrawable(context, R.mipmap.tehillah_icon)
+                                if (drawable != null) {
+                                    val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 512
+                                    val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 512
+                                    val fallbackBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                                    val canvas = Canvas(fallbackBitmap)
+                                    drawable.setBounds(0, 0, canvas.width, canvas.height)
+                                    drawable.draw(canvas)
+                                    
+                                    val stream = FileOutputStream(newFile)
+                                    fallbackBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                                    stream.close()
+                                }
+                            }
+                            
+                            // 4. Generate URI using FileProvider
+                            val contentUri: Uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                newFile
+                            )
+
+                            // 5. Build Intent with image stream and ClipData for Android Share Sheet preview
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                val songLink = "https://tehillah.live/song/${currentSong.songID}"
+                                type = "image/png"
+                                putExtra(Intent.EXTRA_STREAM, contentUri)
+                                putExtra(Intent.EXTRA_SUBJECT, "Tehillah")
+                                putExtra(Intent.EXTRA_TEXT, "I'm listening to ${currentSong.title} by ${currentSong.artist} on Tehillah! Check it out. $songLink")
+                                clipData = android.content.ClipData.newRawUri("", contentUri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, "Share Song"))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            // Fallback to text only if there's an error
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                val songLink = "https://tehillah.live/song/${currentSong.songID}"
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_SUBJECT, "Tehillah")
+                                putExtra(Intent.EXTRA_TEXT, "I'm listening to ${currentSong.title} by ${currentSong.artist} on Tehillah! Check it out. $songLink")
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, "Share Song"))
+                        }
+                    }
+                }
             )
 
             Spacer(Modifier.height(16.dp))
 
-            if (showLyrics && fetchedLyrics != null) {
-                LyricsDisplay(fetchedLyrics, textColor = foregroundColor)
-            } else {
-                AlbumArtDisplay(
-                    albumArt = currentSong.albumArt,
-                    title = currentSong.title,
-                    albumAlpha = albumAlpha
-                )
+            Crossfade(targetState = showLyrics, label = "LyricsTransition") { isShowingLyrics ->
+                if (isShowingLyrics && fetchedLyrics != null) {
+                    LyricsDisplay(fetchedLyrics, textColor = foregroundColor)
+                } else {
+                    AlbumArtDisplay(
+                        albumArt = currentSong.albumArt,
+                        title = currentSong.title,
+                        albumAlpha = albumAlpha
+                    )
+                }
             }
 
             Spacer(Modifier.height(30.dp))
@@ -284,9 +373,13 @@ fun FullPlayer(
 
             PlaybackControls(
                 isPlaying = isPlaying,
+                shuffleModeEnabled = shuffleModeEnabled,
+                repeatMode = repeatMode,
                 onPlayPause = onPlayPause,
                 onNext = onNext,
                 onPrevious = onPrevious,
+                onToggleShuffle = onToggleShuffle,
+                onToggleRepeat = onToggleRepeat,
                 tint = foregroundColor
             )
 

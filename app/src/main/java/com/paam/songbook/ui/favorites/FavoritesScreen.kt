@@ -17,14 +17,10 @@ fun FavoritesScreen(songs: List<Song>, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFF0F2027), Color(0xFF2C5364))
-                )
-            )
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Text("Favorites", style = MaterialTheme.typography.headlineLarge, color = Color.White)
+        Text("Favorites", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground)
         Spacer(modifier = Modifier.height(16.dp))
 
         if (songs.isEmpty()) {
@@ -39,8 +35,8 @@ fun FavoritesScreen(songs: List<Song>, navController: NavController) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text(song.title, style = MaterialTheme.typography.titleMedium, color = Color.White)
-                            Text(song.artist, style = MaterialTheme.typography.bodySmall, color = Color.LightGray)
+                            Text(song.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                            Text(song.artist, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
                         }
                     }
                 }

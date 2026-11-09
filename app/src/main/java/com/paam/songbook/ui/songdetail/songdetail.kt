@@ -22,19 +22,15 @@ fun SongDetailScreen(song: Song) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFFFFD194), Color(0xFF70E1F5))
-                )
-            )
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState())
         ) {
-            Text(song.title, style = MaterialTheme.typography.headlineLarge, color = Color.White)
+            Text(song.title, style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(16.dp))
-            song.lyrics?.let { Text(it, style = MaterialTheme.typography.bodyLarge, color = Color.White) }
+            song.lyrics?.let { Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground) }
         }
 
         // Floating toolbar
@@ -45,13 +41,13 @@ fun SongDetailScreen(song: Song) {
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             IconButton(onClick = { /* Add to favorites */ }) {
-                Icon(Icons.Default.Favorite, contentDescription = "Favorite", tint = Color.White)
+                Icon(Icons.Default.Favorite, contentDescription = "Favorite", tint = MaterialTheme.colorScheme.onBackground)
             }
             IconButton(onClick = { /* Share */ }) {
-                Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.White)
+                Icon(Icons.Default.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onBackground)
             }
             IconButton(onClick = { /* Toggle dark mode */ }) {
-                Icon(Icons.Default.DarkMode, contentDescription = "Dark Mode", tint = Color.White)
+                Icon(Icons.Default.DarkMode, contentDescription = "Dark Mode", tint = MaterialTheme.colorScheme.onBackground)
             }
         }
     }

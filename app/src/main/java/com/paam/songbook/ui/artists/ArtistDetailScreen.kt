@@ -40,7 +40,7 @@ fun ArtistDetailScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = Color(0xFF0F2027)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             // 🔹 This will now be in sync because SongListScreen (which we fixed)

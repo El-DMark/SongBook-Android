@@ -31,6 +31,7 @@ import com.paam.songbook.ui.home.HomeScreen
 import com.paam.songbook.ui.playlists.PlaylistScreen
 import com.paam.songbook.ui.songs.SongListScreen
 import com.paam.songbook.data.local.dao.entity.FavoriteSong
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -41,9 +42,11 @@ fun MainScreen(
     controller: MediaController,
     featuredsongid: Int?,
     favs: List<FavoriteSong>,
+    topListenedSongs: List<Song>,
     onToggleFavorite: (Song) -> Unit // 🔹 Added toggle callback
 ) {
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
+    val scope = rememberCoroutineScope()
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
 
@@ -60,11 +63,7 @@ fun MainScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0F2027), Color(0xFF2C5364))
-                )
-            )
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Scaffold(
             containerColor = Color.Transparent,
@@ -91,10 +90,10 @@ fun MainScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                                 colors = TextFieldDefaults.textFieldColors(
                                     containerColor = Color.Transparent,
-                                    cursorColor = Color.White,
+                                    cursorColor = MaterialTheme.colorScheme.primary,
                                     focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
                                     disabledIndicatorColor = Color.Transparent
@@ -103,7 +102,7 @@ fun MainScreen(
                                     IconButton(onClick = {
                                         if (query.isNotEmpty()) query = "" else isSearching = false
                                     }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                                        Icon(Icons.Default.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onBackground)
                                     }
                                 }
                             )
@@ -115,17 +114,13 @@ fun MainScreen(
                                 3 -> "Playlists"
                                 else -> "Tehillah"
                             }
-                            Text(title, color = Color.White, fontFamily = Cursive, fontSize = 42.sp)
+                            Text(title, color = MaterialTheme.colorScheme.onBackground, fontFamily = Cursive, fontSize = 42.sp)
                         }
                     },
                     actions = {
-                        if (!isSearching && pagerState.currentPage != 0) {
-                            IconButton(onClick = { isSearching = true }) {
-                                Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
-                            }
-                        }
+
                         IconButton(onClick = { navController.navigate("about") }) {
-                            Icon(Icons.Default.Info, contentDescription = "About", tint = Color.White)
+                            Icon(Icons.Default.Info, contentDescription = "About", tint = MaterialTheme.colorScheme.onBackground)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -147,7 +142,8 @@ fun MainScreen(
                             navController = navController,
                             controller = controller,
                             featuredsongid = featuredsongid,
-                            favs = favs
+                            favs = favs,
+                            topListenedSongs = topListenedSongs
                         )
                         1 -> {
                             val filteredSongs = songs.filter { it.matchesQuery(query) }
@@ -162,7 +158,8 @@ fun MainScreen(
                                     controller.prepare()
                                     controller.play()
                                 },
-                                controller = controller
+                                controller = controller,
+                                playlists = playlists
                             )
                         }
                         2 -> ArtistListScreen(

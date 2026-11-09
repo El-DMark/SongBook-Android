@@ -26,8 +26,8 @@ fun RecentlyAddedSection(
         Text("Recently Added", style = MaterialTheme.typography.titleMedium, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))
         SongCarousel(
-            // Business logic: "Recently Added" are the first 6 songs
-            songs = songs.take(7),
+            // Business logic: Grab the newest songs added to the bottom of the JSON list
+            songs = songs.reversed().take(7),
             controller = controller
         )
     }
@@ -46,8 +46,8 @@ fun MostListenedSection(
         Text("Most Listened", style = MaterialTheme.typography.titleMedium, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))
         SongCarousel(
-            // Business logic: "Most Listened" are the last 6 songs, reversed
-            songs = songs.reversed().take(7),
+            // Business logic: "Most Listened" displays the top songs passed into it
+            songs = songs.take(7),
             controller = controller
         )
     }

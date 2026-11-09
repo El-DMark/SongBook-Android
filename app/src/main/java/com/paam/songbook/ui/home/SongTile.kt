@@ -32,9 +32,7 @@ fun SongTile(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-            .border(1.dp, Color.White, RoundedCornerShape(12.dp))
-            .shadow(6.dp, RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable {
                 val mediaItems = listOf(song.toMediaItem())
                 controller.setMediaItems(mediaItems, 0, controller.currentPosition)
@@ -47,13 +45,13 @@ fun SongTile(
             Text(
                 text = song.title,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
             Text(
                 text = song.artist,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.LightGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
         }
@@ -63,13 +61,13 @@ fun SongTile(
             modifier = Modifier
                 .align(Alignment.Center)
                 .size(48.dp)
-                .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
                 .padding(8.dp)
         ) { isPlaying ->
             Icon(
                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                 contentDescription = if (isPlaying) "Pause" else "Play",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

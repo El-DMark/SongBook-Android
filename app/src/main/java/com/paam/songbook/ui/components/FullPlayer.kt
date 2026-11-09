@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +32,15 @@ import com.paam.songbook.model.Song
 //import com.paam.songbook.model.LyricsRepository
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.launch
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Color
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -52,7 +62,8 @@ fun FullPlayer(
     var isUserSeeking by remember { mutableStateOf(false) }
     var previewTime by remember { mutableStateOf<Long?>(null) }
     var showLyrics by remember { mutableStateOf(false) }
-    var fetchedLyrics by remember { mutableStateOf<String?>(null) }
+
+
 
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -76,6 +87,17 @@ fun FullPlayer(
 
     val matchedLyrics = remember(currentSong.songID, lyrics) {
         lyrics.find { it.id == currentSong.songID }
+    }
+
+    val parsedLyrics = remember(matchedLyrics) {
+        val segments = mutableListOf<Pair<String, Boolean>>() // text, isChorus
+        matchedLyrics?.verses?.forEach { verse ->
+            segments.add(verse to false)
+        }
+        matchedLyrics?.chorus?.let { chorus ->
+            if (chorus.isNotBlank()) segments.add(chorus to true)
+        }
+        segments
     }
 
     Box(
@@ -110,14 +132,6 @@ fun FullPlayer(
                     IconButton(
                         onClick = {
                             showLyrics = !showLyrics
-                            if (showLyrics && fetchedLyrics == null) {
-                                coroutineScope.launch {
-                                    fetchedLyrics = buildString {
-                                        matchedLyrics.verses.forEach { appendLine(it).appendLine() }
-                                        appendLine("Chorus:\n${matchedLyrics.chorus}")
-                                    }
-                                }
-                            }
                         },
                         modifier = Modifier
                             .size(40.dp)
@@ -133,22 +147,21 @@ fun FullPlayer(
 
             Spacer(Modifier.height(16.dp))
 
-            if (showLyrics && fetchedLyrics != null) {
-                Text(
-                    text = fetchedLyrics ?: "Loading lyrics...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                )
-            } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                // Album Art (Always visible, but blurred if lyrics are shown)
                 SubcomposeAsyncImage(
                     model = currentSong.albumArt,
                     contentDescription = currentSong.title,
                     modifier = Modifier
                         .size(albumSize)
                         .alpha(albumAlpha)
-                        .clip(RoundedCornerShape(12.dp)),
+                        .clip(RoundedCornerShape(12.dp))
+                        .blur(if (showLyrics) 24.dp else 0.dp),
                     contentScale = ContentScale.Crop,
                     loading = {
                         Box(
@@ -168,6 +181,46 @@ fun FullPlayer(
                         )
                     }
                 )
+
+                // Lyrics Overlay
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showLyrics,
+                    enter = fadeIn() + slideInVertically { it / 4 },
+                    exit = fadeOut() + slideOutVertically { it / 4 },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                    ) {
+                        if (parsedLyrics.isEmpty()) {
+                            Text(
+                                "No lyrics found.",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp),
+                                contentPadding = PaddingValues(vertical = 32.dp),
+                                verticalArrangement = Arrangement.spacedBy(24.dp)
+                            ) {
+                                items(parsedLyrics) { (text, isChorus) ->
+                                    Text(
+                                        text = if (isChorus) "Chorus:\n$text" else text,
+                                        style = if (isChorus) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+                                        color = if (isChorus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -251,19 +304,23 @@ fun FullPlayer(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onPrevious) {
-                    Icon(Icons.Default.SkipPrevious, contentDescription = "Previous")
+                    Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", tint = MaterialTheme.colorScheme.onSurface)
                 }
-                Box(modifier = Modifier.size(72.dp)) {
-                    IconButton(onClick = onPlayPause, modifier = Modifier.size(72.dp)) {
-                        Icon(
-                            if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = "Play/Pause",
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
+                Box(modifier = Modifier
+                    .size(72.dp)
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(36.dp))
+                    .clickable { onPlayPause() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = "Play/Pause",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
                 IconButton(onClick = onNext) {
-                    Icon(Icons.Default.SkipNext, contentDescription = "Next")
+                    Icon(Icons.Default.SkipNext, contentDescription = "Next", tint = MaterialTheme.colorScheme.onSurface)
                 }
             }
 

@@ -50,11 +50,7 @@ fun ArtistListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
-                )
-            )
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),

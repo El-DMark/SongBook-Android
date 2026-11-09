@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
@@ -21,9 +24,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PlaybackControls(
     isPlaying: Boolean,
+    shuffleModeEnabled: Boolean,
+    repeatMode: Int,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onToggleShuffle: () -> Unit,
+    onToggleRepeat: () -> Unit,
     tint: Color // ✅ new
 ) {
     Row(
@@ -31,21 +38,35 @@ fun PlaybackControls(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        IconButton(onClick = onToggleShuffle) {
+            Icon(
+                Icons.Default.Shuffle, 
+                contentDescription = "Shuffle", 
+                tint = if (shuffleModeEnabled) tint else tint.copy(alpha = 0.5f)
+            )
+        }
+        
         IconButton(onClick = onPrevious) {
             Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", tint = tint)
         }
-        Box(modifier = Modifier.size(72.dp)) {
-            IconButton(onClick = onPlayPause, modifier = Modifier.size(62.dp)) {
-                Icon(
-                    if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = "Play/Pause",
-                    modifier = Modifier.size(68.dp),
-                    tint = tint
-                )
-            }
+        
+        IconButton(onClick = onPlayPause, modifier = Modifier.size(72.dp)) {
+            Icon(
+                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                contentDescription = "Play/Pause",
+                modifier = Modifier.size(56.dp),
+                tint = tint
+            )
         }
+        
         IconButton(onClick = onNext) {
             Icon(Icons.Default.SkipNext, contentDescription = "Next", tint = tint)
+        }
+
+        IconButton(onClick = onToggleRepeat) {
+            val repeatIcon = if (repeatMode == 2) Icons.Default.RepeatOne else Icons.Default.Repeat
+            val repeatTint = if (repeatMode > 0) tint else tint.copy(alpha = 0.5f)
+            Icon(repeatIcon, contentDescription = "Repeat", tint = repeatTint)
         }
     }
 }
